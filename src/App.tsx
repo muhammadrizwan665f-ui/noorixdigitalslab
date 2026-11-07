@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { Link, Router, Routes, useNavigate, useRouter } from './lib/router';
 import { AppProvider, useApp } from './lib/store';
+import { ThemeProvider } from './lib/theme';
 import { PublicShell } from './components/Layout';
 import { Loading, Toasts } from './components/ui';
 import Home from './pages/Home';
@@ -37,4 +38,4 @@ function Routed() {
   </PublicShell>;
 }
 
-export function App() { return <Router><AppProvider><Routed /><Toasts /></AppProvider></Router>; }
+export function App() { return <ThemeProvider><Router><AppProvider><Routed /><Toasts /></AppProvider></Router></ThemeProvider>; }

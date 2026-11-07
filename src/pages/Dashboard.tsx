@@ -11,9 +11,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { me, logout } = useApp(); const { path } = useRouter(); const nav = useNavigate();
   return (
     <div className="container-x grid gap-6 py-8 lg:grid-cols-[250px_1fr]">
-      <aside className="card h-fit overflow-hidden"><div className="bg-navy-900 p-5 text-white"><div className="grid h-12 w-12 place-items-center rounded-full bg-brand text-lg font-bold">{me.user?.name[0]?.toUpperCase()}</div><div className="mt-3 font-semibold">{me.user?.name}</div><div className="truncate text-xs text-slate-300">{me.user?.email}</div></div>
-        <nav className="flex gap-1 overflow-x-auto p-2 lg:flex-col" aria-label="Account">{NAV.map(([to, label, icon]) => { const on = to === '/dashboard' ? path === to : path.startsWith(to); return <Link key={to} to={to} aria-current={on ? 'page' : undefined} className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${on ? 'bg-brand-50 text-brand' : 'text-slate-600 hover:bg-slate-50'}`}><Icon name={icon} className="h-4 w-4" />{label}{to.endsWith('notifications') && me.unread > 0 && <span className="ml-auto rounded-full bg-brand px-1.5 text-[11px] font-bold text-white">{me.unread}</span>}</Link>; })}
-          <button onClick={async () => { await logout(); nav('/'); }} className="flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"><Icon name="logout" className="h-4 w-4" />Log out</button></nav></aside>
+      <aside className="h-fit space-y-4 lg:sticky lg:top-24">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-5 text-white shadow-card">
+          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand/40 blur-2xl" aria-hidden="true" />
+          <div className="relative flex items-center gap-3"><div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand text-lg font-bold">{me.user?.name[0]?.toUpperCase()}</div><div className="min-w-0"><div className="truncate font-semibold">{me.user?.name}</div><div className="truncate text-xs text-slate-300">{me.user?.email}</div></div></div>
+          <div className="relative mt-5 text-xs text-slate-300">Wallet balance</div><div className="relative text-2xl font-extrabold tracking-tight">{pkr(me.balance)}</div>
+          <Link to="/dashboard/wallet?add=1" className="relative mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold transition hover:bg-white/25"><Icon name="plus" className="h-3.5 w-3.5" />Add funds</Link>
+        </div>
+        <nav className="card flex gap-1 overflow-x-auto p-2 scrollbar-none lg:flex-col" aria-label="Account">{NAV.map(([to, label, icon]) => { const on = to === '/dashboard' ? path === to : path.startsWith(to); return <Link key={to} to={to} aria-current={on ? 'page' : undefined} className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${on ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}><Icon name={icon} className="h-4 w-4" />{label}{to.endsWith('notifications') && me.unread > 0 && <span className={`ml-auto rounded-full px-1.5 text-[11px] font-bold ${on ? 'bg-white text-brand' : 'bg-brand text-white'}`}>{me.unread}</span>}</Link>; })}
+          <button onClick={async () => { await logout(); nav('/'); }} className="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"><Icon name="logout" className="h-4 w-4" />Log out</button></nav>
+      </aside>
       <section className="min-w-0">{!me.user?.emailVerified && <VerifyBanner />}{children}</section>
     </div>
   );
@@ -24,7 +31,7 @@ const H = ({ children, right }: { children: ReactNode; right?: ReactNode }) => <
 export function Overview() {
   const { data, loading, error, reload } = useApi<any>('/account/overview'); const { me } = useApp();
   if (loading) return <Loading />; if (error || !data) return <ErrorBox message={error} retry={reload} />;
-  const Stat = ({ icon, label, value, to }: any) => <Link to={to} className="card flex items-center gap-4 p-5 hover:border-brand/40"><span className="grid h-11 w-11 place-items-center rounded-lg bg-brand-50 text-brand"><Icon name={icon} /></span><div><div className="text-xs text-slate-500">{label}</div><div className="text-xl font-bold text-navy-900">{value}</div></div></Link>;
+  const Stat = ({ icon, label, value, to }: any) => <Link to={to} className="card flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lift"><span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand"><Icon name={icon} /></span><div><div className="text-xs font-medium text-slate-500">{label}</div><div className="text-2xl font-extrabold tracking-tight text-navy-900">{value}</div></div></Link>;
   return <><H>Welcome, {me.user?.name.split(' ')[0]}</H>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Stat icon="wallet" label="Wallet balance" value={pkr(data.balance)} to="/dashboard/wallet" /><Stat icon="box" label="Total orders" value={data.totalOrders} to="/dashboard/orders" /><Stat icon="chart" label="Total spent" value={pkr(data.totalSpent)} to="/dashboard/orders" /><Stat icon="ticket" label="Open tickets" value={data.openTickets} to="/dashboard/tickets" /></div>
     <div className="card mt-6"><div className="flex items-center justify-between border-b border-slate-100 p-4"><h2 className="font-bold">Recent orders</h2><Link to="/dashboard/orders" className="text-sm font-semibold text-brand">View all →</Link></div>

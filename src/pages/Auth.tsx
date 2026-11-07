@@ -2,10 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearch } from '../lib/router';
 import { useApp } from '../lib/store';
 import { post, ApiError } from '../lib/api';
-import { Button, Field } from '../components/ui';
+import { Button, Field, Icon } from '../components/ui';
 
+const PERKS: [string, string][] = [['bolt', 'Instant delivery on automatic products'], ['wallet', 'One PKR wallet for every purchase'], ['shield', 'Encrypted deliveries and a full wallet ledger'], ['headset', 'Support tickets and WhatsApp help']];
 const Shell = ({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) => (
-  <div className="container-x grid min-h-[70vh] place-items-center py-10"><div className="card w-full max-w-md p-7"><div className="mb-5 text-center"><div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-navy-900"><img src="/favicon.png" alt="" className="h-7 w-auto" /></div><h1 className="text-xl font-bold">{title}</h1>{sub && <p className="mt-1 text-sm text-slate-500">{sub}</p>}</div>{children}</div></div>
+  <div className="container-x grid min-h-[75vh] items-center py-10 lg:grid-cols-2 lg:gap-14">
+    <div className="relative hidden overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-700 p-10 text-white lg:block">
+      <div className="hero-grid absolute inset-0" aria-hidden="true" /><div className="absolute -bottom-16 -left-10 h-64 w-64 rounded-full bg-brand/40 blur-3xl" aria-hidden="true" />
+      <div className="relative"><img src="/logo.png" alt="NOORIX DIGITAL LAB" className="logo-blend h-14 w-auto" /><h2 className="mt-8 text-3xl font-bold leading-tight !text-white">All-in-One Digital Solutions Under One Roof.</h2>
+        <ul className="mt-8 space-y-4">{PERKS.map(([i, t]) => <li key={t} className="flex items-center gap-3 text-slate-200"><span className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-cyan2"><Icon name={i} className="h-5 w-5" /></span>{t}</li>)}</ul></div>
+    </div>
+    <div className="mx-auto w-full max-w-md"><div className="card p-7 sm:p-8"><div className="mb-6"><h1 className="text-2xl font-bold">{title}</h1>{sub && <p className="mt-1.5 text-sm text-slate-500">{sub}</p>}</div>{children}</div></div>
+  </div>
 );
 const dest = (sp: URLSearchParams, fallback: string) => { const n = sp.get('next'); return n && n.startsWith('/') && !n.startsWith('//') ? n : fallback; };
 

@@ -2,6 +2,7 @@ import { useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttr
 import { useApp } from '../lib/store';
 import { ApiError } from '../lib/api';
 import { initials } from '../lib/format';
+import { ACCENTS, useTheme, type Mode } from '../lib/theme';
 
 const ICONS: Record<string, string> = {
   search: 'M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z', cart: 'M3 4h2l2.4 10.2a2 2 0 002 1.6h7.7a2 2 0 002-1.5L21 8H6M10 20.5a.5.5 0 100-1 .5.5 0 000 1zM17 20.5a.5.5 0 100-1 .5.5 0 000 1z',
@@ -76,3 +77,23 @@ export function useAction() {
 export const Confirm = ({ message, onConfirm, children, className = 'btn-outline btn-sm' }: { message: string; onConfirm: () => void; children: ReactNode; className?: string }) => (
   <button className={className} onClick={() => { if (window.confirm(message)) onConfirm(); }}>{children}</button>
 );
+
+/** Light / dark / system + accent colour picker. `dropUp` opens it above (sidebars). */
+export function ThemeMenu({ dropUp = false, className = '' }: { dropUp?: boolean; className?: string }) {
+  const { theme, setMode, setAccent } = useTheme(); const [open, setOpen] = useState(false);
+  const modes: [Mode, string][] = [['light', 'Light'], ['dark', 'Dark'], ['system', 'Auto']];
+  return (
+    <div className={`relative ${className}`}>
+      <button type="button" aria-label="Change theme" aria-expanded={open} onClick={() => setOpen(!open)} className="rounded-lg p-2 text-current hover:bg-white/10"><Icon name="palette" /></button>
+      {open && <>
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+        <div role="dialog" aria-label="Theme" className={`absolute z-50 w-64 rounded-2xl border border-line bg-surface p-4 text-slate-700 shadow-lift ${dropUp ? 'bottom-full left-0 mb-2' : 'right-0 top-full mt-2'}`}>
+          <div className="label">Appearance</div>
+          <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">{modes.map(([m, l]) => <button key={m} onClick={() => setMode(m)} aria-pressed={theme.mode === m} className={`rounded-lg py-1.5 text-xs font-semibold ${theme.mode === m ? 'bg-surface text-navy-900 shadow-sm' : 'text-slate-500'}`}>{l}</button>)}</div>
+          <div className="label mt-4">Colour</div>
+          <div className="flex gap-2">{ACCENTS.map((a) => <button key={a.id} onClick={() => setAccent(a.id)} aria-label={a.name} aria-pressed={theme.accent === a.id} title={a.name} style={{ background: a.swatch }} className={`grid h-9 w-9 place-items-center rounded-full ring-offset-2 ring-offset-[rgb(var(--surface))] transition ${theme.accent === a.id ? 'ring-2 ring-slate-400' : 'hover:scale-110'}`}>{theme.accent === a.id && <Icon name="check" className="h-4 w-4 text-white" />}</button>)}</div>
+        </div>
+      </>}
+    </div>
+  );
+}
