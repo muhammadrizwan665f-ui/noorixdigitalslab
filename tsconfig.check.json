@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.test.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "/opt/npm-tools/node_modules/@types",
+      "/home/claude/.npm-global/lib/node_modules/@types"
+    ],
+    "paths": {
+      "hono": [
+        "/home/claude/tools/vendor/hono/src/index.ts"
+      ],
+      "hono/*": [
+        "/home/claude/tools/vendor/hono/src/*"
+      ],
+      "zod": [
+        "/home/claude/tools/vendor/zod/src/index.ts"
+      ],
+      "hono/cookie": [
+        "/home/claude/tools/vendor/hono/src/helper/cookie/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "worker",
+    "tests/helpers"
+  ]
+}

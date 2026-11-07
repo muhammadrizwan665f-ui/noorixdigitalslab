@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `wrangler dev` (never commit .dev.vars)
+ENCRYPTION_KEY=REPLACE_WITH_OUTPUT_OF__openssl_rand_-base64_32
+SETUP_TOKEN=choose-a-long-random-string
