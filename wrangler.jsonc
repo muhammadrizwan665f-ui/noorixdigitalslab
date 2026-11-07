@@ -15,7 +15,7 @@
       "binding": "DB",
       "database_name": "noorix-db",
       // Replace with the id printed by: npx wrangler d1 create noorix-db
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "ffc0f3e4-8e42-443f-a21c-1fc93a55eae7",
       "migrations_dir": "migrations"
     }
   ],
