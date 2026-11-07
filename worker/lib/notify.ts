@@ -40,3 +40,6 @@ export async function getSettings(env: Env): Promise<Record<string, string>> {
   const r = await env.DB.prepare('SELECT key,value FROM site_settings').all<{ key: string; value: string }>();
   return Object.fromEntries(r.results.map((x) => [x.key, x.value]));
 }
+
+/** Public brand name: Admin → Settings "brand_name", falling back to the SITE_NAME var. */
+export async function brandName(env: Env): Promise<string> { return (await getSettings(env)).brand_name?.trim() || env.SITE_NAME; }

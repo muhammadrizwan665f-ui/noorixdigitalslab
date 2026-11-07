@@ -1,4 +1,6 @@
-# NOORIX DIGITAL LAB — Digital Products & Subscriptions Marketplace
+# B-MART — Digital Products & Subscriptions Marketplace
+
+_Powered by Noorix Digital Lab. The marketplace name is not final: change it any time in **Admin → Settings** (marketplace name, tagline, parent company, social links). No redeploy needed._
 
 *All-in-One Digital Solutions Under One Roof.* · https://noorixdigitallab.online · WhatsApp 03154429417
 
@@ -41,3 +43,9 @@ npm run build && npx wrangler dev      # app + API on http://localhost:8787
 npm test                               # needs Node 22.5+ (tests use node:sqlite as a D1 stand-in)
 ```
 Deploying: see **docs/DEPLOYMENT.md**.
+
+
+## Look & feel
+- Premium dark-navy design with electric-blue accents by default. The palette icon in the header switches Light / Dark / Auto and five accent colours; the choice is remembered per browser.
+- Brand defaults live in `src/lib/brand.ts`; live values come from Admin → Settings. The logo is the SVG in `src/components/Brand.tsx`; favicon and share image are `public/favicon.svg` and `public/og-image.png`.
+- Static page title/meta in `index.html` say "B-MART"; edit them too if the name changes.

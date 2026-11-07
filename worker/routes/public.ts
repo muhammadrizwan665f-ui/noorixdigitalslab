@@ -25,7 +25,7 @@ const card = (r: any) => ({
   imageUrl: r.image_key ? `/files/${r.image_key}` : null, deliveryType: r.delivery_type, category: r.category_name, categorySlug: r.category_slug,
   fromPrice: r.from_price, comparePrice: r.compare_price, inStock: !!r.in_stock, featured: !!r.is_featured, trending: !!r.is_trending, deal: !!r.is_deal, demo: !!r.is_demo,
 });
-const PUBLIC_SETTINGS = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'currency', 'maintenance', 'registration_open', 'min_deposit'];
+const PUBLIC_SETTINGS = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'currency', 'maintenance', 'registration_open', 'min_deposit', 'brand_name', 'brand_tagline', 'brand_parent', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
 const pubSettings = (s: Record<string, string>) => Object.fromEntries(PUBLIC_SETTINGS.map((k) => [k, s[k] ?? '']));
 
 pub.get('/settings', async (c) => c.json(pubSettings(await getSettings(c.env))));
@@ -33,12 +33,14 @@ pub.get('/settings', async (c) => c.json(pubSettings(await getSettings(c.env))))
 pub.get('/home', async (c) => {
   const db = c.env.DB;
   const list = async (flag: string, n: number) => (await db.prepare(`${CARD_SQL} WHERE ${WHERE_LIVE} AND p.${flag}=1 ORDER BY p.sales_count DESC, p.created_at DESC LIMIT ?`).bind(n).all()).results.map(card);
-  const [banners, cats, featured, trending, deals, s] = await Promise.all([
+  const [banners, cats, featured, trending, deals, best, s] = await Promise.all([
     db.prepare('SELECT id,title,subtitle,image_key,cta_label,cta_url FROM homepage_banners WHERE active=1 ORDER BY sort_order').all<any>(),
     db.prepare(`SELECT c.slug,c.name,c.icon,c.description,(SELECT COUNT(*) FROM products p WHERE p.category_id=c.id AND p.status='active') n FROM product_categories c WHERE c.active=1 ORDER BY c.sort_order`).all<any>(),
-    list('is_featured', 8), list('is_trending', 8), list('is_deal', 8), getSettings(c.env),
+    list('is_featured', 8), list('is_trending', 8), list('is_deal', 8),
+    db.prepare(`${CARD_SQL} WHERE ${WHERE_LIVE} AND p.sales_count>0 ORDER BY p.sales_count DESC, p.created_at DESC LIMIT 8`).all<any>(),
+    getSettings(c.env),
   ]);
-  return c.json({ settings: pubSettings(s), banners: banners.results.map((b) => ({ ...b, imageUrl: b.image_key ? `/files/${b.image_key}` : null })), categories: cats.results, featured, trending, deals });
+  return c.json({ settings: pubSettings(s), banners: banners.results.map((b) => ({ ...b, imageUrl: b.image_key ? `/files/${b.image_key}` : null })), categories: cats.results, featured, trending, deals, bestSellers: best.results.map((r) => ({ ...card(r), bestSeller: true })) });
 });
 
 pub.get('/categories', async (c) => c.json((await c.env.DB.prepare(`SELECT c.slug,c.name,c.icon,c.description,(SELECT COUNT(*) FROM products p WHERE p.category_id=c.id AND p.status='active') n FROM product_categories c WHERE c.active=1 ORDER BY c.sort_order`).all()).results));

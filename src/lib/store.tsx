@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { get, post, setCsrf, ApiError } from './api';
+import { brandFrom, type Brand } from './brand';
 
 export interface Me { user: { id: string; email: string; name: string; phone: string | null; isStaff: boolean; emailVerified: boolean } | null; balance: number; unread: number; perms: string[]; isSuper: boolean }
 export interface CartLine { planId: string; productId: string; productName: string; planName: string; price: number; brandColor: string; inputFields: any[]; input: Record<string, string> }
 type Settings = Record<string, string>;
 
 interface Ctx {
-  me: Me; ready: boolean; settings: Settings;
+  me: Me; ready: boolean; settings: Settings; brand: Brand;
   refresh: () => Promise<void>; login: (e: string, p: string) => Promise<Me>; register: (d: any) => Promise<Me>; logout: () => Promise<void>;
   can: (perm: string) => boolean;
   cart: CartLine[]; addToCart: (l: CartLine) => void; removeFromCart: (planId: string) => void; setInput: (planId: string, k: string, v: string) => void; clearCart: () => void;
@@ -27,7 +28,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { try { localStorage.setItem('nx_cart', JSON.stringify(cart)); } catch { /* private mode */ } }, [cart]);
   const toast = useCallback((msg: string, kind: 'ok' | 'err' = 'ok') => { const id = Date.now() + Math.random(); setToasts((t) => [...t, { id, msg, kind }]); setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4500); }, []);
   const value = useMemo<Ctx>(() => ({
-    me, ready, settings, refresh, toast, toasts,
+    me, ready, settings, brand: brandFrom(settings), refresh, toast, toasts,
     login: async (email, password) => apply(await post('/auth/login', { email, password })),
     register: async (d) => apply(await post('/auth/register', d)),
     logout: async () => { await post('/auth/logout').catch(() => {}); setCsrf(''); setMe(empty); },

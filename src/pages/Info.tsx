@@ -6,8 +6,8 @@ import { Button, ErrorBox, Field, Loading, Badge } from '../components/ui';
 import { fmtDateTime, pkr, waLink } from '../lib/format';
 
 export function CmsPage({ slug }: { slug: string }) {
-  const { data, loading, error } = useApi<any>('/public/pages/' + slug);
-  useEffect(() => { if (data) document.title = `${data.title} — NOORIX DIGITAL LAB`; }, [data]);
+  const { data, loading, error } = useApi<any>('/public/pages/' + slug); const { brand } = useApp();
+  useEffect(() => { if (data) document.title = `${data.title} — ${brand.name}`; }, [data, brand.name]);
   if (loading) return <Loading />;
   return <div className="container-x max-w-3xl py-10">{error || !data ? <ErrorBox message={error || 'Page not found'} /> : <article className="card p-7"><h1 className="text-2xl font-bold">{data.title}</h1><div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">{data.body}</div></article>}</div>;
 }

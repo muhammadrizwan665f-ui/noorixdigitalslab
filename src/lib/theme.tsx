@@ -11,7 +11,7 @@ export const ACCENTS = [
 export type Accent = (typeof ACCENTS)[number]['id'];
 interface Theme { mode: Mode; accent: Accent }
 const KEY = 'nx_theme';
-const DEFAULT: Theme = { mode: 'light', accent: 'ocean' };
+const DEFAULT: Theme = { mode: 'dark', accent: 'ocean' };
 
 const read = (): Theme => {
   try { const t = JSON.parse(localStorage.getItem(KEY) || 'null'); if (t && ['light', 'dark', 'system'].includes(t.mode) && ACCENTS.some((a) => a.id === t.accent)) return t; } catch { /* storage blocked */ }
@@ -20,7 +20,7 @@ const read = (): Theme => {
 const resolve = (m: Mode) => (m === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : m);
 export function applyTheme(t: Theme) {
   const el = document.documentElement; el.dataset.mode = resolve(t.mode); el.dataset.accent = t.accent;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', el.dataset.mode === 'dark' ? '#080c16' : '#071426');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', el.dataset.mode === 'dark' ? '#030814' : '#071426');
 }
 
 const Ctx = createContext<{ theme: Theme; setMode: (m: Mode) => void; setAccent: (a: Accent) => void }>(null as any);

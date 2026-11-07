@@ -6,7 +6,7 @@ import { ProductCard } from '../components/ProductCard';
 import { pkr } from '../lib/format';
 
 export function Products() {
-  const sp = useSearch(); const nav = useNavigate();
+  const sp = useSearch(); const nav = useNavigate(); const { brand } = useApp();
   const q = sp.get('q') ?? '', category = sp.get('category') ?? '', sort = sp.get('sort') ?? 'popular', flag = sp.get('flag') ?? '', min = sp.get('min') ?? '', max = sp.get('max') ?? '', page = Number(sp.get('page') ?? 1);
   const [text, setText] = useState(q); useEffect(() => setText(q), [q]);
   const set = (k: string, v: string) => { const n = new URLSearchParams(sp); v ? n.set(k, v) : n.delete(k); if (k !== 'page') n.delete('page'); nav('/products?' + n.toString()); };
@@ -14,7 +14,7 @@ export function Products() {
   const qs = new URLSearchParams({ sort, page: String(page), pageSize: '12' }); if (q) qs.set('q', q); if (category) qs.set('category', category); if (flag) qs.set('flag', flag); if (min) qs.set('min', min); if (max) qs.set('max', max);
   const { data, loading, error, reload } = useApi<any>('/public/products?' + qs.toString());
   const title = flag === 'deal' ? "Today's Deals" : flag === 'trending' ? 'Trending Products' : cats.data?.find((c) => c.slug === category)?.name ?? 'All Products';
-  useEffect(() => { document.title = `${title} — NOORIX DIGITAL LAB`; }, [title]);
+  useEffect(() => { document.title = `${title} — ${brand.name}`; }, [title, brand.name]);
   return (
     <div className="container-x py-8">
       <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
@@ -42,9 +42,9 @@ export function Products() {
 
 export function ProductDetail({ slug }: { slug: string }) {
   const { data: p, loading, error, reload } = useApi<any>('/public/products/' + slug);
-  const { addToCart, setInput, me, toast, settings } = useApp(); const nav = useNavigate();
+  const { addToCart, setInput, me, toast, settings, brand } = useApp(); const nav = useNavigate();
   const [planId, setPlanId] = useState(''); const [input, setIn] = useState<Record<string, string>>({}); const [tab, setTab] = useState('description'); const [err, setErr] = useState('');
-  useEffect(() => { if (p) { setPlanId(p.plans.find((x: any) => x.inStock)?.id ?? p.plans[0]?.id ?? ''); document.title = p.seoTitle || `${p.name} — NOORIX DIGITAL LAB`; } }, [p]);
+  useEffect(() => { if (p) { setPlanId(p.plans.find((x: any) => x.inStock)?.id ?? p.plans[0]?.id ?? ''); document.title = p.seoTitle || `${p.name} — ${brand.name}`; } }, [p]);
   if (loading) return <Loading />; if (error || !p) return <div className="container-x py-10"><ErrorBox message={error || 'Product not found'} /></div>;
   const plan = p.plans.find((x: any) => x.id === planId);
   const line = () => {

@@ -5,7 +5,7 @@ import { body, bad, conflict, AppError, addMinutes, forbidden } from '../lib/htt
 import { hashPassword, randomToken, sha256Hex, timingSafeEqual, uid, verifyPassword } from '../lib/crypto';
 import { createSession, destroyAllSessions, destroySession, requireAuth } from '../lib/auth';
 import { rateLimit } from '../lib/ratelimit';
-import { audit, getSettings, sendEmail } from '../lib/notify';
+import { audit, brandName, getSettings, sendEmail } from '../lib/notify';
 
 export const auth = new Hono<HonoEnv>();
 
@@ -16,7 +16,7 @@ const DUMMY = 'pbkdf2$100000$AAAAAAAAAAAAAAAAAAAAAA==$AAAAAAAAAAAAAAAAAAAAAAAAAA
 async function issueVerification(c: any, userId: string, to: string) {
   const token = randomToken(32);
   await c.env.DB.prepare('INSERT INTO email_verification_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)').bind(await sha256Hex(token), userId, addMinutes(60 * 48)).run();
-  await sendEmail(c.env, to, 'Verify your Noorix Digital Lab email', `Open this link to verify your email:\n${c.env.SITE_URL}/verify-email?token=${token}\n\nIf you did not create an account, ignore this message.`);
+  await sendEmail(c.env, to, `Verify your ${await brandName(c.env)} email`, `Open this link to verify your email:\n${c.env.SITE_URL}/verify-email?token=${token}\n\nIf you did not create an account, ignore this message.`);
 }
 
 export async function meResponse(c: any) {
@@ -44,7 +44,7 @@ auth.post('/register', async (c) => {
   await c.env.DB.batch([
     c.env.DB.prepare('INSERT INTO users(id,email,name,phone,password_hash) VALUES(?,?,?,?,?)').bind(id, i.email, i.name, i.phone ?? null, await hashPassword(i.password)),
     c.env.DB.prepare('INSERT INTO wallet_accounts(user_id,balance) VALUES(?,0)').bind(id),
-    c.env.DB.prepare('INSERT INTO notifications(id,user_id,type,title,body,link) VALUES(?,?,?,?,?,?)').bind(uid(), id, 'system', 'Welcome to Noorix Digital Lab', 'Add funds to your wallet to start shopping.', '/dashboard/wallet'),
+    c.env.DB.prepare('INSERT INTO notifications(id,user_id,type,title,body,link) VALUES(?,?,?,?,?,?)').bind(uid(), id, 'system', `Welcome to ${await brandName(c.env)}`, 'Add funds to your wallet to start shopping.', '/dashboard/wallet'),
   ]);
   await issueVerification(c, id, i.email);
   await createSession(c, id);
@@ -88,7 +88,7 @@ auth.post('/forgot', async (c) => {
   if (u) {
     const token = randomToken(32);
     await c.env.DB.prepare('INSERT INTO password_reset_tokens(token_hash,user_id,expires_at) VALUES(?,?,?)').bind(await sha256Hex(token), u.id, addMinutes(30)).run();
-    await sendEmail(c.env, i.email, 'Reset your Noorix password', `Use this link within 30 minutes:\n${c.env.SITE_URL}/reset-password?token=${token}\n\nIf you did not request this, ignore this message.`);
+    await sendEmail(c.env, i.email, `Reset your ${await brandName(c.env)} password`, `Use this link within 30 minutes:\n${c.env.SITE_URL}/reset-password?token=${token}\n\nIf you did not request this, ignore this message.`);
   }
   return c.json({ ok: true, message: 'If that email is registered, a reset link has been sent.' });   // same response either way
 });

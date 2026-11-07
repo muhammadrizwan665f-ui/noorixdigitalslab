@@ -27,7 +27,7 @@
   "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
     "SITE_URL": "https://noorixdigitallab.online",
-    "SITE_NAME": "NOORIX DIGITAL LAB",
+    "SITE_NAME": "B-MART",
     "WHATSAPP": "923154429417"
   },
   "observability": { "enabled": true },
