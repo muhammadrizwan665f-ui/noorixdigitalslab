@@ -5,6 +5,9 @@ import { Badge, ErrorBox, Icon, Loading, Pagination, ProductArt, Empty } from '.
 import { ProductCard } from '../components/ProductCard';
 import { pkr } from '../lib/format';
 
+import { MobileProductDetail } from './MobileProduct';
+import { useIsMobile } from '../lib/useMedia';
+
 export function Products() {
   const sp = useSearch(); const nav = useNavigate(); const { brand } = useApp();
   const q = sp.get('q') ?? '', category = sp.get('category') ?? '', sort = sp.get('sort') ?? 'popular', flag = sp.get('flag') ?? '', min = sp.get('min') ?? '', max = sp.get('max') ?? '', page = Number(sp.get('page') ?? 1);
@@ -41,6 +44,7 @@ export function Products() {
 }
 
 export function ProductDetail({ slug }: { slug: string }) {
+  const isMobile = useIsMobile();
   const { data: p, loading, error, reload } = useApi<any>('/public/products/' + slug);
   const { addToCart, setInput, me, toast, settings, brand } = useApp(); const nav = useNavigate();
   const [planId, setPlanId] = useState(''); const [input, setIn] = useState<Record<string, string>>({}); const [tab, setTab] = useState('description'); const [err, setErr] = useState('');
@@ -54,6 +58,7 @@ export function ProductDetail({ slug }: { slug: string }) {
   const add = (buy: boolean) => { const l = line(); if (!l) return; addToCart(l); if (buy) nav('/cart'); else toast('Added to cart'); };
   const wa = settings.whatsapp || '923154429417';
   void setInput; void me;
+  if (isMobile) return <MobileProductDetail p={p} plan={plan} planId={planId} setPlanId={setPlanId} input={input} setIn={setIn} err={err} add={add} />;
   return (
     <div className="container-x py-8">
       <nav className="mb-4 text-sm text-slate-500"><Link to="/products" className="hover:text-brand">Products</Link> / <Link to={`/products?category=${p.categorySlug}`} className="hover:text-brand">{p.category}</Link> / <span className="text-slate-700">{p.name}</span></nav>
