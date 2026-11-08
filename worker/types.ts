@@ -7,6 +7,8 @@ export interface Env {
   WHATSAPP: string;
   ENCRYPTION_KEY?: string;
   SETUP_TOKEN?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
   PAYFAST_MERCHANT_ID?: string;

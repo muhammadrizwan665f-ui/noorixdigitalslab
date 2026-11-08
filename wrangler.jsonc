@@ -34,6 +34,7 @@
   // SECRETS (never put these here). Set with: npx wrangler secret put <NAME>
   //   ENCRYPTION_KEY  - base64 of 32 random bytes (inventory/delivery encryption)
   //   SETUP_TOKEN     - one-time token to create the first Super Admin
+  //   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET - optional, enables "Continue with Google" (docs/GOOGLE_LOGIN.md)
   //   EMAIL_API_KEY   - optional (Resend) for transactional email
   //   PAYFAST_MERCHANT_ID / PAYFAST_SECURED_KEY - optional, PayFast gateway
   //   PROVIDER_<CODE>_KEY - optional, one per API provider

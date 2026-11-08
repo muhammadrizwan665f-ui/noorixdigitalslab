@@ -3,6 +3,7 @@ import type { HonoEnv, Env } from './types';
 import { AppError } from './lib/http';
 import { csrfGuard, loadSession } from './lib/auth';
 import { auth, setup } from './routes/auth';
+import { googleAuth } from './routes/google';
 import { pub, seo } from './routes/public';
 import { account, files } from './routes/account';
 import { ops } from './routes/admin_ops';
@@ -43,6 +44,7 @@ export function createApp() {
     await next();
   });
 
+  app.route('/api/auth/google', googleAuth);
   app.route('/api/auth', auth);
   app.route('/api/setup', setup);
   app.route('/api/public', pub);

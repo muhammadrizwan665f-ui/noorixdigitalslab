@@ -49,3 +49,7 @@ Deploying: see **docs/DEPLOYMENT.md**.
 - Premium dark-navy design with electric-blue accents by default. The palette icon in the header switches Light / Dark / Auto and five accent colours; the choice is remembered per browser.
 - Brand defaults live in `src/lib/brand.ts`; live values come from Admin → Settings. The logo is the SVG in `src/components/Brand.tsx`; favicon and share image are `public/favicon.svg` and `public/og-image.png`.
 - Static page title/meta in `index.html` say "B-MART"; edit them too if the name changes.
+
+
+## Google sign-in
+Optional "Continue with Google" — setup, redirect URI and security notes: [docs/GOOGLE_LOGIN.md](docs/GOOGLE_LOGIN.md).
