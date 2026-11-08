@@ -47,7 +47,7 @@ export function Header() {
           <div className="ml-auto flex items-center gap-1 md:ml-0">
             {me.user && <Link to="/dashboard/wallet" className="mr-1 hidden items-center gap-2 rounded-full border border-brand/30 bg-white/5 py-1.5 pl-3 pr-4 text-sm font-semibold transition hover:bg-white/10 2xl:flex" aria-label="Wallet balance"><Icon name="wallet" className="h-4 w-4 text-cyan2" />{pkr(me.balance)}</Link>}
             <ThemeMenu />
-            <Link to="/cart" className="relative rounded-full p-2 hover:bg-white/10" aria-label={`Cart, ${cart.length} items`}><Icon name="cart" />{cart.length > 0 && <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[11px] font-bold shadow-glow">{cart.length}</span>}</Link>
+            <Link to="/cart" className="relative rounded-full p-2 hover:bg-white/10" aria-label={`Cart, ${cart.length} items`}><Icon name="cart" /><span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[11px] font-bold shadow-glow">{cart.length}</span></Link>
             {me.user ? (
               <div className="hidden items-center gap-1 sm:flex">
                 <Link to="/dashboard" className="btn-primary btn-sm ml-1 !rounded-full !px-4 !py-2"><Icon name="user" className="h-4 w-4" />Dashboard</Link>
@@ -78,26 +78,33 @@ export function Header() {
 
 const SOCIALS: [string, string, string][] = [['social_facebook', 'facebook', 'Facebook'], ['social_instagram', 'instagram', 'Instagram'], ['social_tiktok', 'tiktok', 'TikTok'], ['social_youtube', 'youtube', 'YouTube'], ['social_x', 'xsocial', 'X']];
 
+const SOCIAL_BG: Record<string, string> = { facebook: 'bg-[#1877f2]', youtube: 'bg-[#ff0000]', tiktok: 'bg-black ring-1 ring-white/30', xsocial: 'bg-black ring-1 ring-white/30', instagram: 'bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600' };
+
 export function Footer() {
   const { settings, brand } = useApp(); const wa = settings.whatsapp || '923154429417';
   const socials = SOCIALS.filter(([k]) => settings[k]);
   const col = (title: string, items: [string, string][]) => (<div><h4 className="mb-4 text-sm font-bold text-white">{title}</h4><ul className="space-y-2.5 text-sm">{items.map(([to, l]) => <li key={to + l}><Link to={to} className="text-slate-400 transition hover:text-white">{l}</Link></li>)}</ul></div>);
+  const row = (icon: string, child: ReactNode) => <li className="flex items-center gap-3 text-slate-300"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name={icon} className="h-4 w-4" /></span>{child}</li>;
   return (
-    <footer className="relative mt-20 border-t border-brand/25 bg-navy-950 text-slate-300">
+    <footer className="relative mt-16 border-t border-brand/25 bg-navy-950 text-slate-300">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent" aria-hidden="true" />
-      <div className="container-x grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr]">
-        <div><Logo size="lg" /><p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">{brand.tagline}. Digital products and subscriptions, paid from one PKR wallet.</p>
-          {socials.length > 0 && <div className="mt-5 flex gap-2">{socials.map(([k, icon, name]) => <a key={k} href={settings[k]} target="_blank" rel="noopener noreferrer" aria-label={name} className="grid h-10 w-10 place-items-center rounded-full border border-brand/30 bg-white/5 text-slate-200 transition hover:border-brand hover:bg-brand hover:text-white"><Icon name={icon} className="h-[18px] w-[18px]" /></a>)}</div>}</div>
-        {col('Quick links', [['/', 'Home'], ['/products', 'All products'], ['/products?flag=deal', 'Deals'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
-        {col('Legal', [['/page/terms', 'Terms & conditions'], ['/page/privacy', 'Privacy policy'], ['/page/refund', 'Refund policy'], ['/support', 'FAQ'], ['/page/about', 'About us']])}
-        <div><h4 className="mb-4 text-sm font-bold text-white">Contact us</h4>
+      <div className="container-x grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1.5fr_1fr] lg:divide-x lg:divide-white/10 [&>div]:lg:pl-8 [&>div:first-child]:lg:pl-0">
+        <div><Logo size="lg" /><p className="mt-3 text-xs text-slate-400">{brand.tagline}</p></div>
+        {col('Quick Links', [['/', 'Home'], ['/products', 'All Products'], ['/products?flag=deal', 'Deals'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
+        {col('Legal', [['/page/terms', 'Terms & Conditions'], ['/page/privacy', 'Privacy Policy'], ['/page/refund', 'Refund Policy'], ['/support', 'FAQ']])}
+        <div><h4 className="mb-4 text-sm font-bold text-white">Contact Us</h4>
           <ul className="space-y-3 text-sm">
-            <li><a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-slate-300 transition hover:text-white"><span className="grid h-9 w-9 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name="whatsapp" className="h-4 w-4" /></span>WhatsApp 0{wa.replace(/^92/, '')}</a></li>
-            {settings.support_email && <li><a href={`mailto:${settings.support_email}`} className="flex items-center gap-3 text-slate-300 transition hover:text-white"><span className="grid h-9 w-9 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name="mail" className="h-4 w-4" /></span>{settings.support_email}</a></li>}
-            <li><Link to="/dashboard/tickets?new=1" className="flex items-center gap-3 text-slate-300 transition hover:text-white"><span className="grid h-9 w-9 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name="ticket" className="h-4 w-4" /></span>Open a support ticket</Link></li>
+            {settings.support_email && row('mail', <a href={`mailto:${settings.support_email}`} className="hover:text-white">{settings.support_email}</a>)}
+            {row('phone', <a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" className="hover:text-white">0{wa.replace(/^92/, '')}</a>)}
+            {settings.contact_address && row('pin', <span>{settings.contact_address}</span>)}
           </ul></div>
+        <div><h4 className="mb-4 text-sm font-bold text-white">Follow Us</h4>
+          <div className="flex flex-wrap gap-2">
+            {socials.map(([k, icon, name]) => <a key={k} href={settings[k]} target="_blank" rel="noopener noreferrer" aria-label={name} className={`grid h-10 w-10 place-items-center rounded-full text-white transition hover:scale-110 ${SOCIAL_BG[icon]}`}><Icon name={icon} className="h-[18px] w-[18px]" /></a>)}
+            <a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white transition hover:scale-110"><Icon name="whatsapp" className="h-[18px] w-[18px]" /></a>
+          </div></div>
       </div>
-      <div className="border-t border-white/10"><div className="container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-slate-500 sm:flex-row"><span>© {new Date().getFullYear()} {brand.name}. All rights reserved. All prices in PKR.</span><span className="flex items-center gap-2 text-slate-400">Powered by <img src="/logo.png" alt="" className="logo-blend h-6 w-auto" /><b className="font-semibold text-slate-200">{brand.parent}</b></span></div></div>
+      <div className="border-t border-white/10"><div className="container-x flex flex-col items-center justify-between gap-2 py-4 text-xs text-slate-500 sm:flex-row"><span>© {new Date().getFullYear()} {brand.name}. All Rights Reserved. <span className="mx-1 text-slate-600">|</span> Powered by <b className="font-semibold text-slate-300">{brand.parent}</b></span><span className="flex items-center gap-3 italic text-slate-300"><span className="hidden h-px w-16 bg-brand sm:block" />{brand.slogan.includes(',') ? <>{brand.slogan.split(',')[0]}, <b className="text-brand">{brand.slogan.split(',').slice(1).join(',').trim()}</b></> : brand.slogan}</span></div></div>
     </footer>
   );
 }

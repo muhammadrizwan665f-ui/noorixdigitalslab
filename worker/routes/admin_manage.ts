@@ -224,7 +224,7 @@ manage.put('/staff/:id', requireSuper, async (c) => {
 manage.get('/settings', requireSuper, async (c) => c.json(await getSettings(c.env)));
 manage.put('/settings', requireSuper, async (c) => {
   const i = await body(c, z.record(z.string().max(2000)));
-  const allowed = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'maintenance', 'min_deposit', 'registration_open', 'require_email_verification', 'brand_name', 'brand_tagline', 'brand_parent', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
+  const allowed = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'maintenance', 'min_deposit', 'registration_open', 'require_email_verification', 'brand_name', 'brand_tagline', 'brand_parent', 'brand_slogan', 'contact_address', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
   for (const [k, v] of Object.entries(i)) if (k.startsWith('social_') && v && !/^https:\/\/[^\s]+$/.test(v)) throw bad(`${k.replace('social_', '')} link must start with https://`);
   if (i.brand_name !== undefined && i.brand_name.trim().length < 2) throw bad('Brand name is required');
   const st = Object.entries(i).filter(([k]) => allowed.includes(k)).map(([k, v]) => c.env.DB.prepare(`INSERT INTO site_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=${NOW}`).bind(k, v));

@@ -25,7 +25,7 @@ const card = (r: any) => ({
   imageUrl: r.image_key ? `/files/${r.image_key}` : null, deliveryType: r.delivery_type, category: r.category_name, categorySlug: r.category_slug,
   fromPrice: r.from_price, comparePrice: r.compare_price, inStock: !!r.in_stock, featured: !!r.is_featured, trending: !!r.is_trending, deal: !!r.is_deal, demo: !!r.is_demo,
 });
-const PUBLIC_SETTINGS = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'currency', 'maintenance', 'registration_open', 'min_deposit', 'brand_name', 'brand_tagline', 'brand_parent', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
+const PUBLIC_SETTINGS = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'currency', 'maintenance', 'registration_open', 'min_deposit', 'brand_name', 'brand_tagline', 'brand_parent', 'brand_slogan', 'contact_address', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
 const pubSettings = (s: Record<string, string>) => Object.fromEntries(PUBLIC_SETTINGS.map((k) => [k, s[k] ?? '']));
 
 pub.get('/settings', async (c) => c.json(pubSettings(await getSettings(c.env))));
