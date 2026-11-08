@@ -15,20 +15,19 @@ const Head = ({ eyebrow, title, sub, to, cta = 'View all' }: { eyebrow?: string;
 );
 const Grid = ({ items, cols = 'lg:grid-cols-4' }: { items: any[]; cols?: string }) => <div className={`grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 sm:gap-5 ${cols}`}>{items.map((p) => <ProductCard key={p.id} p={p} />)}</div>;
 
-/** Mobile only: the first six products, shown right after the hero and search. */
-function MobileFirstProducts() {
-  const { data } = useApi<any>('/public/products?pageSize=6&sort=popular');
-  if (!data?.items?.length) return null;
+/** Mobile only: the first six products, shown right after the hero. Data is fetched in parallel with the page data. */
+function MobileFirstProducts({ items }: { items: any[] }) {
+  if (!items.length) return null;
   return (
-    <section className="container-x order-2 mt-6" aria-label="Popular products">
+    <section className="container-x order-2 mt-4" aria-label="Popular products">
       <div className="mb-3 flex items-end justify-between"><h2 className="text-xl font-extrabold">Popular Products</h2><Link to="/products" className="text-sm font-semibold text-brand">View all</Link></div>
-      <div className="grid grid-cols-2 gap-3">{data.items.map((p: any) => <ProductCard key={p.id} p={p} compact />)}</div>
+      <div className="grid grid-cols-2 gap-3">{items.map((p: any, i: number) => <ProductCard key={p.id} p={p} priority={i < 2} />)}</div>
     </section>
   );
 }
 
 export default function Home() {
-  const { data, error, loading, reload } = useApi<any>('/public/home'); const nav = useNavigate(); const isMobile = useIsMobile(); const { settings, brand } = useApp(); const [q, setQ] = useState(''); const [slide, setSlide] = useState(0);
+  const isMobile = useIsMobile(); const { data, error, loading, reload } = useApi<any>('/public/home'); const pop = useApi<any>(isMobile ? '/public/products?pageSize=6&sort=popular' : null); const nav = useNavigate(); const { settings, brand } = useApp(); const [q, setQ] = useState(''); const [slide, setSlide] = useState(0);
   const n = data?.banners?.length ?? 0;
   useEffect(() => { if (n < 2) return; const t = setInterval(() => setSlide((x) => (x + 1) % n), 7000); return () => clearInterval(t); }, [n]);
   if (loading) return <Loading />; if (error || !data) return <div className="container-x py-10"><ErrorBox message={error || 'Could not load'} retry={reload} /></div>;
@@ -44,30 +43,30 @@ export default function Home() {
         <div className="absolute -right-32 -top-24 h-[34rem] w-[34rem] rounded-full bg-brand/35 blur-[120px]" aria-hidden="true" />
         <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-cyan2/15 blur-[100px]" aria-hidden="true" />
         {n > 1 && <><button aria-label="Previous slide" onClick={() => setSlide((slide + n - 1) % n)} className="absolute left-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-brand/40 bg-navy-900/80 hover:bg-brand sm:grid"><Icon name="arrow" className="h-5 w-5 rotate-180" /></button><button aria-label="Next slide" onClick={() => setSlide((slide + 1) % n)} className="absolute right-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-brand/40 bg-navy-900/80 hover:bg-brand sm:grid"><Icon name="arrow" className="h-5 w-5" /></button></>}
-        <div className="container-x relative grid grid-cols-1 items-center gap-6 py-10 sm:px-16 lg:grid-cols-[1fr_1.05fr] lg:py-14">
+        <div className="container-x relative grid grid-cols-1 items-center gap-1 py-4 md:gap-6 sm:px-16 md:py-10 lg:grid-cols-[1fr_1.05fr] lg:py-14">
           <div className="min-w-0 max-md:contents">
             <div className="max-md:order-1">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand/50 bg-brand/10 px-4 py-1.5 text-sm font-semibold text-slate-100"><Icon name="crown" className="h-4 w-4 text-amber-400" />{banner?.title || 'Premium Digital Services'}</span>
-            <h1 className="mt-5 !text-white"><span className="block text-6xl font-black italic leading-none tracking-tight sm:text-8xl">{bA && <span className="bg-gradient-to-r from-cyan2 to-brand bg-clip-text text-transparent">{bA}</span>}{bB}</span>
-              <span className="mt-3 block text-3xl font-extrabold italic leading-tight sm:text-5xl">{tagHead}{tagLast && <> <span className="bg-gradient-to-r from-cyan2 to-brand bg-clip-text text-transparent">{tagLast}</span></>}</span></h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-300">{banner?.subtitle || s.hero_subtitle || 'Get your favourite services at the best prices.'}</p>
-            <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-slate-100">{['Instant delivery', 'Verified payments', 'Support on WhatsApp'].map((t) => <li key={t} className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-brand"><Icon name="check" className="h-3 w-3" /></span>{t}</li>)}</ul>
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand/50 bg-brand/10 px-4 py-1.5 max-md:hidden text-sm font-semibold text-slate-100"><Icon name="crown" className="h-4 w-4 text-amber-400" />{banner?.title || 'Premium Digital Services'}</span>
+            <h1 className="mt-1 !text-white md:mt-5"><span className="block text-5xl font-black italic leading-none tracking-tight sm:text-8xl">{bA && <span className="bg-gradient-to-r from-cyan2 to-brand bg-clip-text text-transparent">{bA}</span>}{bB}</span>
+              <span className="mt-1.5 block text-xl font-extrabold italic leading-tight sm:mt-3 sm:text-5xl">{tagHead}{tagLast && <> <span className="bg-gradient-to-r from-cyan2 to-brand bg-clip-text text-transparent">{tagLast}</span></>}</span></h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-300 max-md:line-clamp-2 sm:mt-5 sm:text-lg">{banner?.subtitle || s.hero_subtitle || 'Get your favourite services at the best prices.'}</p>
+            <ul className="mt-5 flex flex-wrap gap-x-6 max-md:hidden gap-y-2 text-sm font-semibold text-slate-100">{['Instant delivery', 'Verified payments', 'Support on WhatsApp'].map((t) => <li key={t} className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-brand"><Icon name="check" className="h-3 w-3" /></span>{t}</li>)}</ul>
             </div>
             <div className="min-w-0 max-md:order-3">
-            <form onSubmit={search} role="search" className="mt-7 flex max-w-xl items-center gap-1 rounded-full border border-brand/50 bg-navy-900/80 p-1.5 shadow-[0_0_40px_-10px_rgb(var(--brand)/.6)] backdrop-blur transition focus-within:border-brand">
+            <form onSubmit={search} role="search" className="mt-3 flex md:mt-7 max-w-xl items-center gap-1 rounded-full border border-brand/50 bg-navy-900/80 p-1.5 shadow-[0_0_40px_-10px_rgb(var(--brand)/.6)] backdrop-blur transition focus-within:border-brand">
               <Icon name="search" className="ml-3.5 h-5 w-5 shrink-0 text-slate-300" />
               <input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search products" placeholder="Search streaming, AI tools, software…" className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none" />
               <button className="btn-primary !rounded-full px-6"><Icon name="search" className="h-4 w-4" />Search</button>
             </form>
-            <div className="mt-5 flex flex-wrap gap-3"><Link to={banner?.cta_url || '/products'} className="btn-primary shine !rounded-full px-7 py-3">{banner?.cta_label || 'Browse products'}<Icon name="arrow" className="h-4 w-4" /></Link><Link to="/track-order" className="btn !rounded-full border border-white/25 px-7 py-3 text-white hover:bg-white/10">Track order</Link></div>
+            <div className="mt-3 flex gap-2 md:mt-5 md:flex-wrap md:gap-3"><Link to={banner?.cta_url || '/products'} className="btn-primary shine flex-1 whitespace-nowrap !rounded-full px-3 py-2.5 md:flex-none md:px-7 md:py-3">{banner?.cta_label || 'Browse products'}<Icon name="arrow" className="h-4 w-4" /></Link><Link to="/track-order" className="btn flex-1 whitespace-nowrap !rounded-full border border-white/25 px-3 py-2.5 text-white hover:bg-white/10 md:flex-none md:px-7 md:py-3">Track order</Link></div>
             <PoweredBy variant="chip" />
             </div>
             
           </div>
-          <div className="max-md:order-2"><HeroScene products={stage} name={brand.name} />{n > 1 && <div className="mt-2 flex justify-center gap-2">{data.banners.map((b: any, i: number) => <button key={b.id} aria-label={`Slide ${i + 1}`} onClick={() => setSlide(i)} className={`h-2.5 rounded-full transition-all ${i === slide % n ? 'w-6 bg-brand' : 'w-2.5 bg-white/30'}`} />)}</div>}</div>
+          {!isMobile && <div><HeroScene products={stage} name={brand.name} />{n > 1 && <div className="mt-2 flex justify-center gap-2">{data.banners.map((b: any, i: number) => <button key={b.id} aria-label={`Slide ${i + 1}`} onClick={() => setSlide(i)} className={`h-2.5 rounded-full transition-all ${i === slide % n ? 'w-6 bg-brand' : 'w-2.5 bg-white/30'}`} />)}</div>}</div>}
         </div>
       </section>
-      {isMobile && <MobileFirstProducts />}
+      {isMobile && <MobileFirstProducts items={pop.data?.items ?? []} />}
 
       <section className="order-4 md:order-none container-x relative z-10 -mt-2">
         <div className="card grid grid-cols-2 divide-line sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">

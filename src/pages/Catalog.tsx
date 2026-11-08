@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearch } from '../lib/router';
 import { useApi, useApp } from '../lib/store';
 import { Badge, ErrorBox, Icon, Loading, Pagination, ProductArt, Empty } from '../components/ui';
@@ -16,6 +16,9 @@ export function Products() {
   const cats = useApi<any[]>('/public/categories');
   const qs = new URLSearchParams({ sort, page: String(page), pageSize: '12' }); if (q) qs.set('q', q); if (category) qs.set('category', category); if (flag) qs.set('flag', flag); if (min) qs.set('min', min); if (max) qs.set('max', max);
   const { data, loading, error, reload } = useApi<any>('/public/products?' + qs.toString());
+  const [catOpen, setCatOpen] = useState(false); const catRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { setCatOpen(false); }, [category]);
+  useEffect(() => { if (!catOpen) return; const off = (e: Event) => { if (!catRef.current?.contains(e.target as Node)) setCatOpen(false); }; const esc = (e: KeyboardEvent) => e.key === 'Escape' && setCatOpen(false); document.addEventListener('pointerdown', off); document.addEventListener('keydown', esc); return () => { document.removeEventListener('pointerdown', off); document.removeEventListener('keydown', esc); }; }, [catOpen]);
   const title = flag === 'deal' ? "Today's Deals" : flag === 'trending' ? 'Trending Products' : cats.data?.find((c) => c.slug === category)?.name ?? 'All Products';
   useEffect(() => { document.title = `${title} — ${brand.name}`; }, [title, brand.name]);
   return (
@@ -23,7 +26,17 @@ export function Products() {
       <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
       <div className="mt-6 grid gap-6 lg:grid-cols-[250px_1fr]">
         <aside className="space-y-5">
-          <div className="card p-4"><h2 className="mb-2 text-sm font-bold">Categories</h2>
+          <div ref={catRef} className="relative md:hidden">
+            <button type="button" aria-expanded={catOpen} aria-haspopup="listbox" onClick={() => setCatOpen((o) => !o)} className="card flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
+              <span className="min-w-0"><span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Category</span><span className="block truncate text-sm font-bold text-navy-900">{cats.data?.find((c) => c.slug === category)?.name ?? 'All categories'}</span></span>
+              <Icon name="down" className={`h-5 w-5 shrink-0 text-brand transition-transform ${catOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {catOpen && <ul role="listbox" aria-label="Categories" className="card absolute inset-x-0 top-full z-30 mt-2 max-h-[60vh] space-y-0.5 overflow-y-auto p-2 text-sm shadow-lift">
+              <li><button role="option" aria-selected={!category} onClick={() => { setCatOpen(false); set('category', ''); }} className={`w-full rounded-lg px-3 py-2.5 text-left ${!category ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}>All categories</button></li>
+              {cats.data?.map((c) => <li key={c.slug}><button role="option" aria-selected={category === c.slug} onClick={() => { setCatOpen(false); set('category', c.slug); }} className={`flex w-full justify-between rounded-lg px-3 py-2.5 text-left ${category === c.slug ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}><span>{c.name}</span><span className="text-slate-400">{c.n}</span></button></li>)}
+            </ul>}
+          </div>
+          <div className="card hidden p-4 md:block"><h2 className="mb-2 text-sm font-bold">Categories</h2>
             <ul className="space-y-0.5 text-sm"><li><button onClick={() => set('category', '')} className={`w-full rounded-md px-2 py-1.5 text-left ${!category ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}>All categories</button></li>
               {cats.data?.map((c) => <li key={c.slug}><button onClick={() => set('category', c.slug)} className={`flex w-full justify-between rounded-md px-2 py-1.5 text-left ${category === c.slug ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}><span>{c.name}</span><span className="text-xs text-slate-400">{c.n}</span></button></li>)}</ul></div>
           <div className="card p-4"><h2 className="mb-2 text-sm font-bold">Price (PKR)</h2>

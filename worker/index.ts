@@ -22,7 +22,12 @@ export function createApp() {
     h.set('X-Frame-Options', 'DENY');
     h.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     h.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    if (new URL(c.req.url).pathname.startsWith('/api/')) h.set('Cache-Control', 'no-store');
+    const path = new URL(c.req.url).pathname;
+    if (path.startsWith('/api/')) {
+      // Anonymous catalogue reads may be reused by the browser briefly (faster repeat visits / back navigation); everything else is never cached.
+      const publicRead = c.req.method === 'GET' && c.res.status === 200 && !c.get('user') && /^\/api\/public\/(home|categories|products)/.test(path);
+      h.set('Cache-Control', publicRead ? 'private, max-age=30, stale-while-revalidate=120' : 'no-store');
+    }
   });
 
   app.onError((err, c) => {
