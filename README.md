@@ -2,7 +2,7 @@
 
 _Powered by Noorix Digital Lab. The marketplace name is not final: change it any time in **Admin → Settings** (marketplace name, tagline, parent company, social links). No redeploy needed._
 
-*All-in-One Digital Solutions Under One Roof.* · https://noorixdigitallab.online · WhatsApp 03154429417
+*All-in-One Digital Solutions Under One Roof.* · https://bmart.store · WhatsApp 03154429417
 
 A complete marketplace built **only on Cloudflare**: one Worker serves the React app and the REST API; data lives in **D1**, uploads in **R2**.
 

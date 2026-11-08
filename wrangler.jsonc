@@ -26,7 +26,7 @@
   ],
   "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
-    "SITE_URL": "https://noorixdigitallab.online",
+    "SITE_URL": "https://bmart.store",
     "SITE_NAME": "B-MART",
     "WHATSAPP": "923154429417"
   },

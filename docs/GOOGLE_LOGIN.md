@@ -4,12 +4,12 @@
 `state`, `nonce` and **PKCE (S256)**, handled entirely by the Worker (`worker/routes/google.ts`, `worker/lib/google.ts`).
 Google users get the **same session cookie** as email/password users — there is no second auth system.
 
-## Values to use (production, SITE_URL = `https://noorixdigitallab.online`)
+## Values to use (production, SITE_URL = `https://bmart.store`)
 
 | Google Cloud Console field | Value |
 |---|---|
-| Authorized JavaScript origin | `https://noorixdigitallab.online` |
-| Authorized redirect URI | `https://noorixdigitallab.online/api/auth/google/callback` |
+| Authorized JavaScript origin | `https://bmart.store` |
+| Authorized redirect URI | `https://bmart.store/api/auth/google/callback` |
 
 The redirect URI is always `SITE_URL` + `/api/auth/google/callback`. If you change the domain (or `SITE_URL` in `wrangler.jsonc`), change it in Google too.
 Requests that arrive on another host (e.g. `*.workers.dev`) are bounced to the `SITE_URL` host first, because the state cookie must live there.
@@ -34,10 +34,10 @@ It only **creates two new tables** (`oauth_states`, `oauth_identities`); no exis
 ## Google Cloud Console setup
 
 1. Open https://console.cloud.google.com/ and create/select a project (e.g. "B-MART").
-2. **APIs & Services → OAuth consent screen** (Google Auth Platform → Branding): choose **External**, set app name `B-MART`, support email, developer email; add your domain under *Authorized domains* (`noorixdigitallab.online`). Scopes: only `openid`, `email`, `profile` (non-sensitive). Click **Publish app** (Testing mode only allows listed test users).
+2. **APIs & Services → OAuth consent screen** (Google Auth Platform → Branding): choose **External**, set app name `B-MART`, support email, developer email; add your domain under *Authorized domains* (`bmart.store`). Scopes: only `openid`, `email`, `profile` (non-sensitive). Click **Publish app** (Testing mode only allows listed test users).
 3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → Application type **Web application**, name `B-MART web`.
-4. *Authorized JavaScript origins* → add `https://noorixdigitallab.online`.
-5. *Authorized redirect URIs* → add `https://noorixdigitallab.online/api/auth/google/callback` (exact, no trailing slash).
+4. *Authorized JavaScript origins* → add `https://bmart.store`.
+5. *Authorized redirect URIs* → add `https://bmart.store/api/auth/google/callback` (exact, no trailing slash).
 6. Create → copy the **Client ID** and **Client secret** into Cloudflare (above).
 7. Open `/login`, click **Continue with Google**.
 

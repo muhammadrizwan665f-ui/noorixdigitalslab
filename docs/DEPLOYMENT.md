@@ -1,6 +1,6 @@
 # Deployment guide (Cloudflare only)
 
-You need: a Cloudflare account, the domain `noorixdigitallab.online` added to Cloudflare, Node 20+, and this repo on GitHub.
+You need: a Cloudflare account, the domain `bmart.store` added to Cloudflare, Node 20+, and this repo on GitHub.
 
 ## 1. Install and log in
 ```bash
@@ -36,11 +36,11 @@ npm run deploy      # = vite build + wrangler deploy
 **Via GitHub (Workers Builds):** Cloudflare dashboard → Workers & Pages → Create → Import a repository. Build command `npm run build`, deploy command `npx wrangler deploy`. Add the secrets under *Settings → Variables and Secrets* (or use the commands above) **before** the first deploy.
 
 ## 6. Custom domain
-Workers & Pages → `noorix-digital-lab` → Settings → Domains & Routes → add `noorixdigitallab.online` (and `www`). Make sure the `SITE_URL` var in `wrangler.jsonc` matches.
+Workers & Pages → `noorix-digital-lab` → Settings → Domains & Routes → add `bmart.store` (and `www`). Make sure the `SITE_URL` var in `wrangler.jsonc` matches.
 
 ## 7. Create the first Super Admin (one time)
 ```bash
-curl -X POST https://noorixdigitallab.online/api/setup/super-admin \
+curl -X POST https://bmart.store/api/setup/super-admin \
   -H "Content-Type: application/json" \
   -d '{"token":"<SETUP_TOKEN>","name":"Your Name","email":"you@example.com","password":"a-long-password"}'
 ```
