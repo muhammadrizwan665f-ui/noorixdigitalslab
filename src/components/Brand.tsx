@@ -28,3 +28,18 @@ export function Logo({ size = 'md', tagline = true, className = '' }: { size?: '
     </span>
   );
 }
+
+/** "Powered by <parent company>" in three sizes. The parent name is editable in Admin → Settings. */
+export function PoweredBy({ variant }: { variant: 'chip' | 'card' | 'panel' }) {
+  const { brand } = useApp();
+  const logo = <img src="/logo.png" alt="" className={`logo-blend w-auto ${variant === 'chip' ? 'h-8' : variant === 'card' ? 'h-10' : 'h-14'}`} />;
+  if (variant === 'chip') return <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-brand/40 bg-white/5 py-1.5 pl-3 pr-5">{logo}<span className="leading-tight"><span className="block text-[11px] text-slate-400">Powered by</span><span className="text-sm font-bold text-white">{brand.parent}</span></span></div>;
+  if (variant === 'card') return <div className="mt-5 flex w-fit max-w-full flex-col items-start gap-2 rounded-2xl border border-brand/40 bg-gradient-to-br from-brand/15 to-transparent px-4 py-3">{logo}<span className="whitespace-nowrap leading-tight"><span className="block text-[11px] text-slate-400">Powered & operated by</span><span className="text-base font-bold text-white">{brand.parent}</span></span></div>;
+  return (
+    <div className="relative mt-8 flex flex-col items-start gap-4 overflow-hidden rounded-2xl border border-brand/40 bg-gradient-to-br from-navy-800 to-navy-950 p-5 sm:flex-row sm:items-center sm:p-6">
+      <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-brand/30 blur-3xl" aria-hidden="true" />
+      <div className="relative shrink-0">{logo}</div>
+      <div className="relative"><div className="text-xs font-semibold text-cyan2">Powered by {brand.parent}</div><p className="mt-1 text-lg font-bold leading-snug text-white">{brand.name} is powered and operated by {brand.parent}.</p></div>
+    </div>
+  );
+}

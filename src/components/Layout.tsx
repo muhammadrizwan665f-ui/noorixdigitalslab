@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useRouter } from '../lib/router';
 import { useApi, useApp } from '../lib/store';
 import { Icon, ThemeMenu } from './ui';
-import { Logo } from './Brand';
+import { Logo, PoweredBy } from './Brand';
 import { pkr, waLink } from '../lib/format';
 import { BRAND_DEFAULTS } from '../lib/brand';
 
@@ -89,7 +89,7 @@ export function Footer() {
     <footer className="relative mt-16 border-t border-brand/25 bg-navy-950 text-slate-300">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent" aria-hidden="true" />
       <div className="container-x grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1.5fr_1fr] lg:divide-x lg:divide-white/10 [&>div]:lg:pl-8 [&>div:first-child]:lg:pl-0">
-        <div><Logo size="lg" /><p className="mt-3 text-xs text-slate-400">{brand.tagline}</p></div>
+        <div><Logo size="lg" /><p className="mt-3 text-xs text-slate-400">{brand.tagline}</p><PoweredBy variant="card" /></div>
         {col('Quick Links', [['/', 'Home'], ['/products', 'All Products'], ['/products?flag=deal', 'Deals'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
         {col('Legal', [['/page/terms', 'Terms & Conditions'], ['/page/privacy', 'Privacy Policy'], ['/page/refund', 'Refund Policy'], ['/support', 'FAQ']])}
         <div><h4 className="mb-4 text-sm font-bold text-white">Contact Us</h4>
@@ -104,7 +104,7 @@ export function Footer() {
             <a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white transition hover:scale-110"><Icon name="whatsapp" className="h-[18px] w-[18px]" /></a>
           </div></div>
       </div>
-      <div className="border-t border-white/10"><div className="container-x flex flex-col items-center justify-between gap-2 py-4 text-xs text-slate-500 sm:flex-row"><span>© {new Date().getFullYear()} {brand.name}. All Rights Reserved. <span className="mx-1 text-slate-600">|</span> Powered by <b className="font-semibold text-slate-300">{brand.parent}</b></span><span className="flex items-center gap-3 italic text-slate-300"><span className="hidden h-px w-16 bg-brand sm:block" />{brand.slogan.includes(',') ? <>{brand.slogan.split(',')[0]}, <b className="text-brand">{brand.slogan.split(',').slice(1).join(',').trim()}</b></> : brand.slogan}</span></div></div>
+      <div className="border-t border-white/10"><div className="container-x flex flex-col items-center justify-between gap-2 py-4 text-xs text-slate-500 sm:flex-row"><span>© {new Date().getFullYear()} {brand.name}. All Rights Reserved. <span className="mx-1 text-slate-600">|</span> Powered by <b className="font-bold text-white">{brand.parent}</b></span><span className="flex items-center gap-3 italic text-slate-300"><span className="hidden h-px w-16 bg-brand sm:block" />{brand.slogan.includes(',') ? <>{brand.slogan.split(',')[0]}, <b className="text-brand">{brand.slogan.split(',').slice(1).join(',').trim()}</b></> : brand.slogan}</span></div></div>
     </footer>
   );
 }

@@ -4,12 +4,15 @@ import { useApi, useApp } from '../lib/store';
 import { post, ApiError } from '../lib/api';
 import { Button, ErrorBox, Field, Loading, Badge } from '../components/ui';
 import { fmtDateTime, pkr, waLink } from '../lib/format';
+import { PoweredBy } from '../components/Brand';
 
 export function CmsPage({ slug }: { slug: string }) {
   const { data, loading, error } = useApi<any>('/public/pages/' + slug); const { brand } = useApp();
   useEffect(() => { if (data) document.title = `${data.title} — ${brand.name}`; }, [data, brand.name]);
   if (loading) return <Loading />;
-  return <div className="container-x max-w-3xl py-10">{error || !data ? <ErrorBox message={error || 'Page not found'} /> : <article className="card p-7"><h1 className="text-2xl font-bold">{data.title}</h1><div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">{data.body}</div></article>}</div>;
+  const about = slug === 'about';
+  if (error || !data) return <div className="container-x max-w-3xl py-10">{about ? <article className="card p-7"><h1 className="text-2xl font-bold">About {brand.name}</h1><p className="mt-3 text-slate-600">{brand.tagline}</p><PoweredBy variant="panel" /></article> : <ErrorBox message={error || 'Page not found'} />}</div>;
+  return <div className="container-x max-w-3xl py-10"><article className="card p-7"><h1 className="text-2xl font-bold">{data.title}</h1><div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">{data.body}</div>{about && <PoweredBy variant="panel" />}</article></div>;
 }
 
 export function Support() {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from '../lib/router';
 import { useApi, useApp } from '../lib/store';
 import { Icon, Loading, ErrorBox } from '../components/ui';
 import { HeroScene } from '../components/HeroArt';
+import { PoweredBy } from '../components/Brand';
 import { ProductCard } from '../components/ProductCard';
 import { splitName } from '../lib/brand';
 import { useIsMobile } from '../lib/useMedia';
@@ -59,6 +60,7 @@ export default function Home() {
               <button className="btn-primary !rounded-full px-6"><Icon name="search" className="h-4 w-4" />Search</button>
             </form>
             <div className="mt-5 flex flex-wrap gap-3"><Link to={banner?.cta_url || '/products'} className="btn-primary shine !rounded-full px-7 py-3">{banner?.cta_label || 'Browse products'}<Icon name="arrow" className="h-4 w-4" /></Link><Link to="/track-order" className="btn !rounded-full border border-white/25 px-7 py-3 text-white hover:bg-white/10">Track order</Link></div>
+            <PoweredBy variant="chip" />
             </div>
             
           </div>
