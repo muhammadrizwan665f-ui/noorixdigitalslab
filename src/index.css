@@ -22,6 +22,10 @@
 [data-mode='dark'][data-accent='rose']    { --n950: 16 4 9; --n900: 28 7 15; --n800: 46 11 24; --n700: 72 17 38; --n600: 100 25 54; --line: 100 30 62; --brand: 244 63 94; --brand-600: 225 29 72; --brand-50: 52 16 28; --brand-100: 72 22 38; }
 
 @layer base {
+  /* A bare `grid` must never grow wider than its container because of a wide child (scrolling tab bars, tables):
+     that made phones zoom the whole page out. grid-cols-* utilities still override this. */
+  .grid { grid-template-columns: minmax(0, 1fr); }
+
   html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
   body { @apply bg-mist text-slate-800 font-sans antialiased; font-feature-settings: 'cv11', 'ss01', 'tnum' 0; transition: background-color .25s; }
   [data-mode='dark'] body { background-image: radial-gradient(900px 520px at 85% -8%, rgb(var(--brand) / .16), transparent 70%), radial-gradient(700px 480px at -5% 55%, rgb(var(--brand) / .10), transparent 70%); background-attachment: fixed; }
