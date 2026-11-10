@@ -7,20 +7,38 @@ import { fmtDate, fmtDateTime, pkr, toPaisa } from '../lib/format';
 
 const NAV: [string, string, string][] = [['/dashboard', 'Dashboard', 'home'], ['/dashboard/wallet', 'Wallet', 'wallet'], ['/dashboard/orders', 'My Orders', 'box'], ['/dashboard/tickets', 'Support Tickets', 'ticket'], ['/dashboard/notifications', 'Notifications', 'bell'], ['/dashboard/settings', 'Profile & Security', 'cog']];
 
+const SHORT: Record<string, string> = { '/dashboard': 'Home', '/dashboard/wallet': 'Wallet', '/dashboard/orders': 'Orders', '/dashboard/tickets': 'Support', '/dashboard/notifications': 'Alerts', '/dashboard/settings': 'Profile' };
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { me, logout } = useApp(); const { path } = useRouter(); const nav = useNavigate();
   return (
-    <div className="container-x grid gap-6 py-8 lg:grid-cols-[250px_1fr]">
+    <div className="container-x grid gap-4 py-4 lg:grid-cols-[250px_1fr] lg:gap-6 lg:py-8">
       <aside className="h-fit space-y-4 lg:sticky lg:top-24">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-5 text-white shadow-card">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-3.5 text-white shadow-card lg:hidden">
+          <div className="relative flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand font-bold">{me.user?.name[0]?.toUpperCase()}</div>
+            <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{me.user?.name}</div><div className="truncate text-[11px] text-slate-300">{me.user?.email}</div></div>
+            <button onClick={async () => { await logout(); nav('/'); }} aria-label="Log out" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 transition hover:bg-white/20"><Icon name="logout" className="h-4 w-4" /></button>
+          </div>
+          <div className="relative mt-3 flex items-end justify-between gap-3 border-t border-white/10 pt-3">
+            <div><div className="text-[11px] text-slate-300">Wallet balance</div><div className="text-xl font-extrabold leading-tight tracking-tight">{pkr(me.balance)}</div></div>
+            <Link to="/dashboard/wallet?add=1" className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-600"><Icon name="plus" className="h-3.5 w-3.5" />Add funds</Link>
+          </div>
+        </div>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-5 text-white shadow-card max-lg:hidden">
           <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand/40 blur-2xl" aria-hidden="true" />
           <div className="relative flex items-center gap-3"><div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand text-lg font-bold">{me.user?.name[0]?.toUpperCase()}</div><div className="min-w-0"><div className="truncate font-semibold">{me.user?.name}</div><div className="truncate text-xs text-slate-300">{me.user?.email}</div></div></div>
           <div className="relative mt-5 text-xs text-slate-300">Wallet balance</div><div className="relative text-2xl font-extrabold tracking-tight">{pkr(me.balance)}</div>
           <Link to="/dashboard/wallet?add=1" className="relative mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold transition hover:bg-white/25"><Icon name="plus" className="h-3.5 w-3.5" />Add funds</Link>
         </div>
-        <nav className="card flex gap-1 overflow-x-auto p-2 scrollbar-none lg:flex-col" aria-label="Account">{NAV.map(([to, label, icon]) => { const on = to === '/dashboard' ? path === to : path.startsWith(to); return <Link key={to} to={to} aria-current={on ? 'page' : undefined} className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${on ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}><Icon name={icon} className="h-4 w-4" />{label}{to.endsWith('notifications') && me.unread > 0 && <span className={`ml-auto rounded-full px-1.5 text-[11px] font-bold ${on ? 'bg-white text-brand' : 'bg-brand text-white'}`}>{me.unread}</span>}</Link>; })}
+        <nav className="card hidden gap-1 overflow-x-auto p-2 scrollbar-none lg:flex lg:flex-col" aria-label="Account">{NAV.map(([to, label, icon]) => { const on = to === '/dashboard' ? path === to : path.startsWith(to); return <Link key={to} to={to} aria-current={on ? 'page' : undefined} className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${on ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}><Icon name={icon} className="h-4 w-4" />{label}{to.endsWith('notifications') && me.unread > 0 && <span className={`ml-auto rounded-full px-1.5 text-[11px] font-bold ${on ? 'bg-white text-brand' : 'bg-brand text-white'}`}>{me.unread}</span>}</Link>; })}
           <button onClick={async () => { await logout(); nav('/'); }} className="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"><Icon name="logout" className="h-4 w-4" />Log out</button></nav>
       </aside>
+      <nav aria-label="Account" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_20px_rgba(0,0,0,0.08)] lg:hidden">
+        {NAV.map(([to, label, icon]) => { const on = to === '/dashboard' ? path === to : path.startsWith(to); const short = SHORT[to]; return (
+          <Link key={to} to={to} aria-label={label} aria-current={on ? 'page' : undefined} className={`relative flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-semibold ${on ? 'text-brand' : 'text-slate-500'}`}>
+            <span className={`relative grid h-7 w-10 place-items-center rounded-full transition ${on ? 'bg-brand-50' : ''}`}><Icon name={icon} className="h-5 w-5" />{to.endsWith('notifications') && me.unread > 0 && <span className="absolute -right-0.5 -top-0.5 grid min-w-[16px] place-items-center rounded-full bg-brand px-1 text-[9px] font-bold leading-4 text-white">{me.unread}</span>}</span>{short}
+          </Link>); })}
+      </nav>
       <section className="min-w-0">{!me.user?.emailVerified && <VerifyBanner />}{children}</section>
     </div>
   );

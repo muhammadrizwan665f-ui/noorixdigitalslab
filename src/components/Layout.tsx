@@ -110,7 +110,7 @@ export function Footer() {
 }
 
 export function PublicShell({ children }: { children: ReactNode }) {
-  const { settings, brand } = useApp(); const { path } = useRouter(); const onProduct = /^\/products\/[^/]+/.test(path); const wa = settings.whatsapp || '923154429417';
-  return (<div className={`flex min-h-screen flex-col ${onProduct ? 'max-md:pb-24' : ''}`}><Header /><main className="flex-1">{children}</main><Footer />
-    <a href={waLink(wa, `Hello ${brand.name}, I need help`)} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" className={`fixed bottom-5 right-5 z-30 grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white shadow-lift transition hover:scale-105 hover:bg-emerald-600 ${onProduct ? 'max-md:hidden' : ''}`}><Icon name="whatsapp" /></a></div>);
+  const { settings, brand } = useApp(); const { path } = useRouter(); const onProduct = /^\/products\/[^/]+/.test(path); const onDash = path.startsWith('/dashboard'); const wa = settings.whatsapp || '923154429417';
+  return (<div className={`flex min-h-screen flex-col ${onProduct ? 'max-md:pb-24' : ''} ${onDash ? 'max-lg:pb-16' : ''}`}><Header /><main className="flex-1">{children}</main><Footer />
+    <a href={waLink(wa, `Hello ${brand.name}, I need help`)} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" className={`fixed bottom-5 right-5 z-30 grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white shadow-lift transition hover:scale-105 hover:bg-emerald-600 ${onProduct ? 'max-md:hidden' : ''} ${onDash ? 'max-lg:bottom-20 max-lg:h-12 max-lg:w-12' : ''}`}><Icon name="whatsapp" /></a></div>);
 }
