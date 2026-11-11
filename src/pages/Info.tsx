@@ -5,22 +5,29 @@ import { post, ApiError } from '../lib/api';
 import { Button, ErrorBox, Field, Loading, Badge } from '../components/ui';
 import { fmtDateTime, pkr, waLink } from '../lib/format';
 import { PoweredBy } from '../components/Brand';
+import { contactFrom } from '../lib/brand';
+import { policyFallback } from '../lib/policies';
 
 export function CmsPage({ slug }: { slug: string }) {
-  const { data, loading, error } = useApi<any>('/public/pages/' + slug); const { brand } = useApp();
-  useEffect(() => { if (data) document.title = `${data.title} — ${brand.name}`; }, [data, brand.name]);
+  const { data, loading, error } = useApi<any>('/public/pages/' + slug); const { brand, settings } = useApp();
+  useEffect(() => { const t = data?.title ?? policyFallback(slug, brand, contactFrom(settings))?.title; if (t) document.title = `${t} — ${brand.name}`; }, [data, slug, brand, settings]);
   if (loading) return <Loading />;
   const about = slug === 'about';
+  const fb = (error || !data) && !loading ? policyFallback(slug, brand, contactFrom(settings)) : null;
+  if (fb) return <div className="container-x max-w-3xl py-10"><article className="card p-7"><h1 className="text-2xl font-bold">{fb.title}</h1><div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">{fb.body}</div></article></div>;
   if (error || !data) return <div className="container-x max-w-3xl py-10">{about ? <article className="card p-7"><h1 className="text-2xl font-bold">About {brand.name}</h1><p className="mt-3 text-slate-600">{brand.tagline}</p><PoweredBy variant="panel" /></article> : <ErrorBox message={error || 'Page not found'} />}</div>;
   return <div className="container-x max-w-3xl py-10"><article className="card p-7"><h1 className="text-2xl font-bold">{data.title}</h1><div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">{data.body}</div>{about && <PoweredBy variant="panel" />}</article></div>;
 }
 
 export function Support() {
-  const { settings, me } = useApp(); const faqs = useApi<any[]>('/public/faqs'); const wa = settings.whatsapp || '923154429417';
+  const { settings, me } = useApp(); const faqs = useApi<any[]>('/public/faqs'); const ct = contactFrom(settings); const wa = ct.whatsapp;
   return <div className="container-x max-w-4xl py-10"><h1 className="text-2xl font-bold sm:text-3xl">Support</h1><p className="mt-1 text-slate-600">We usually reply within a few hours.</p>
     <div className="mt-6 grid gap-4 sm:grid-cols-2">
       <div className="card p-5"><h2 className="font-bold">Support tickets</h2><p className="mt-1 text-sm text-slate-600">Best for order and payment issues — you can attach screenshots and follow the conversation.</p><Link to={me.user ? '/dashboard/tickets' : '/login?next=/dashboard/tickets'} className="btn-primary mt-4">{me.user ? 'Open my tickets' : 'Log in to open a ticket'}</Link></div>
-      <div className="card p-5"><h2 className="font-bold">WhatsApp</h2><p className="mt-1 text-sm text-slate-600">Quick questions before you buy. Official number: 0{wa.replace(/^92/, '')}</p><a className="btn-dark mt-4" target="_blank" rel="noopener noreferrer" href={waLink(wa, 'Hello Noorix Digital Lab')}>Chat on WhatsApp</a></div></div>
+      <div className="card p-5"><h2 className="font-bold">WhatsApp</h2><p className="mt-1 text-sm text-slate-600">Quick questions before you buy. Official number: {ct.phone}</p><a className="btn-dark mt-4" target="_blank" rel="noopener noreferrer" href={waLink(wa, 'Hello Noorix Digital Lab')}>Chat on WhatsApp</a></div></div>
+    <div className="card mt-4 p-5"><h2 className="font-bold">Contact details</h2>
+      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Office address</dt><dd className="mt-1 text-slate-700">{ct.address}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Email</dt><dd className="mt-1"><a className="text-brand hover:underline" href={`mailto:${ct.email}`}>{ct.email}</a></dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">WhatsApp</dt><dd className="mt-1"><a className="text-brand hover:underline" target="_blank" rel="noopener noreferrer" href={waLink(wa, 'Hello')}>{ct.phone}</a></dd></div></dl>
+      <p className="mt-3 text-xs text-slate-500">Policies: <Link to="/page/terms" className="text-brand hover:underline">Terms &amp; Conditions</Link> · <Link to="/page/privacy" className="text-brand hover:underline">Privacy</Link> · <Link to="/page/refund" className="text-brand hover:underline">Refund</Link> · <Link to="/page/return" className="text-brand hover:underline">Return</Link> · <Link to="/page/delivery" className="text-brand hover:underline">Digital Delivery</Link></p></div>
     <h2 className="mt-10 text-xl font-bold">Frequently asked questions</h2>
     <div className="mt-4 space-y-3">{faqs.loading ? <Loading /> : faqs.data?.map((f) => <details key={f.id} className="card group p-4"><summary className="cursor-pointer list-none font-semibold text-navy-900">{f.question}</summary><p className="mt-2 text-sm text-slate-600">{f.answer}</p></details>)}</div></div>;
 }

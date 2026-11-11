@@ -4,7 +4,7 @@ import { useApi, useApp } from '../lib/store';
 import { Icon, ThemeMenu } from './ui';
 import { Logo, PoweredBy } from './Brand';
 import { pkr, waLink } from '../lib/format';
-import { BRAND_DEFAULTS } from '../lib/brand';
+import { BRAND_DEFAULTS, contactFrom } from '../lib/brand';
 
 /** Desktop dropdown: opens on hover/focus/click, closes on Escape or outside click. */
 function NavMenu({ label, items, active }: { label: string; items: [string, string][]; active?: boolean }) {
@@ -81,22 +81,22 @@ const SOCIALS: [string, string, string][] = [['social_facebook', 'facebook', 'Fa
 const SOCIAL_BG: Record<string, string> = { facebook: 'bg-[#1877f2]', youtube: 'bg-[#ff0000]', tiktok: 'bg-black ring-1 ring-white/30', xsocial: 'bg-black ring-1 ring-white/30', instagram: 'bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600' };
 
 export function Footer() {
-  const { settings, brand } = useApp(); const wa = settings.whatsapp || '923154429417';
+  const { settings, brand } = useApp(); const ct = contactFrom(settings); const wa = ct.whatsapp;
   const socials = SOCIALS.filter(([k]) => settings[k]);
   const col = (title: string, items: [string, string][]) => (<div><h4 className="mb-4 text-sm font-bold text-white">{title}</h4><ul className="space-y-2.5 text-sm">{items.map(([to, l]) => <li key={to + l}><Link to={to} className="text-slate-400 transition hover:text-white">{l}</Link></li>)}</ul></div>);
-  const row = (icon: string, child: ReactNode) => <li className="flex items-center gap-3 text-slate-300"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name={icon} className="h-4 w-4" /></span>{child}</li>;
+  const row = (icon: string, child: ReactNode) => <li className="flex items-start gap-3 text-slate-300"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand/15 text-cyan2"><Icon name={icon} className="h-4 w-4" /></span><div className="min-w-0 pt-1 leading-snug">{child}</div></li>;
   return (
     <footer className="relative mt-16 border-t border-brand/25 bg-navy-950 text-slate-300">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent" aria-hidden="true" />
       <div className="container-x grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1.5fr_1fr] lg:divide-x lg:divide-white/10 [&>div]:lg:pl-8 [&>div:first-child]:lg:pl-0">
         <div><Logo size="lg" /><p className="mt-3 text-xs text-slate-400">{brand.tagline}</p><PoweredBy variant="card" /></div>
         {col('Quick Links', [['/', 'Home'], ['/products', 'All Products'], ['/products?flag=deal', 'Deals'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
-        {col('Legal', [['/page/terms', 'Terms & Conditions'], ['/page/privacy', 'Privacy Policy'], ['/page/refund', 'Refund Policy'], ['/support', 'FAQ']])}
+        {col('Legal', [['/page/terms', 'Terms & Conditions'], ['/page/privacy', 'Privacy Policy'], ['/page/refund', 'Refund Policy'], ['/page/return', 'Return Policy'], ['/page/delivery', 'Digital Delivery Policy'], ['/support', 'FAQ & Contact']])}
         <div><h4 className="mb-4 text-sm font-bold text-white">Contact Us</h4>
           <ul className="space-y-3 text-sm">
-            {settings.support_email && row('mail', <a href={`mailto:${settings.support_email}`} className="hover:text-white">{settings.support_email}</a>)}
-            {row('phone', <a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" className="hover:text-white">0{wa.replace(/^92/, '')}</a>)}
-            {settings.contact_address && row('pin', <span>{settings.contact_address}</span>)}
+            {row('pin', <address className="not-italic">{ct.address}</address>)}
+            {row('mail', <a href={`mailto:${ct.email}`} className="break-all hover:text-white">{ct.email}</a>)}
+            {row('phone', <a href={waLink(wa, `Hello ${brand.name}`)} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp {ct.phone}</a>)}
           </ul></div>
         <div><h4 className="mb-4 text-sm font-bold text-white">Follow Us</h4>
           <div className="flex flex-wrap gap-2">
