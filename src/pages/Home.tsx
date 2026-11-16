@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '../lib/router';
 import { useApi, useApp } from '../lib/store';
+import { get } from '../lib/api';
 import { Icon, Loading, ErrorBox } from '../components/ui';
 import { HeroScene } from '../components/HeroArt';
 import { PoweredBy } from '../components/Brand';
@@ -15,19 +16,27 @@ const Head = ({ eyebrow, title, sub, to, cta = 'View all' }: { eyebrow?: string;
 );
 const Grid = ({ items, cols = 'lg:grid-cols-4' }: { items: any[]; cols?: string }) => <div className={`grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 sm:gap-5 ${cols}`}>{items.map((p) => <ProductCard key={p.id} p={p} />)}</div>;
 
-/** Mobile only: the first six products, shown right after the hero. Data is fetched in parallel with the page data. */
-function MobileFirstProducts({ items }: { items: any[] }) {
-  if (!items.length) return null;
+/** Mobile only: every product, shown right after the hero. Loads 24 at a time with a "Show more" button. */
+function MobileAllProducts() {
+  const [items, setItems] = useState<any[]>([]); const [total, setTotal] = useState(0); const [page, setPage] = useState(1); const [busy, setBusy] = useState(true); const [err, setErr] = useState('');
+  useEffect(() => {
+    let live = true; setBusy(true); setErr('');
+    get<any>(`/public/products?pageSize=24&sort=popular&page=${page}`).then((r) => { if (!live) return; setTotal(r.total); setItems((x) => (page === 1 ? r.items : [...x, ...r.items.filter((n: any) => !x.some((o) => o.id === n.id))])); })
+      .catch((e: any) => live && setErr(e.message || 'Could not load products')).finally(() => live && setBusy(false));
+    return () => { live = false; };
+  }, [page]);
   return (
-    <section className="container-x order-2 mt-4" aria-label="Popular products">
-      <div className="mb-3 flex items-end justify-between"><h2 className="text-xl font-extrabold">Popular Products</h2><Link to="/products" className="text-sm font-semibold text-brand">View all</Link></div>
+    <section className="container-x order-2 mt-4" aria-label="All products">
+      <div className="mb-3 flex items-end justify-between"><h2 className="text-xl font-extrabold">All Products{total > 0 && <span className="ml-1.5 text-sm font-semibold text-slate-500">({total})</span>}</h2><Link to="/products" className="text-sm font-semibold text-brand">Filters</Link></div>
       <div className="grid grid-cols-2 gap-3">{items.map((p: any, i: number) => <ProductCard key={p.id} p={p} priority={i < 2} />)}</div>
+      {err && <p role="alert" className="mt-3 text-center text-sm text-red-500">{err}</p>}
+      {items.length < total && <button type="button" disabled={busy} onClick={() => setPage((x) => x + 1)} className="btn-outline mt-4 w-full justify-center">{busy ? 'Loading…' : `Show more products (${total - items.length} left)`}</button>}
     </section>
   );
 }
 
 export default function Home() {
-  const isMobile = useIsMobile(); const { data, error, loading, reload } = useApi<any>('/public/home'); const pop = useApi<any>(isMobile ? '/public/products?pageSize=6&sort=popular' : null); const nav = useNavigate(); const { settings, brand } = useApp(); const [q, setQ] = useState(''); const [slide, setSlide] = useState(0);
+  const isMobile = useIsMobile(); const { data, error, loading, reload } = useApi<any>('/public/home'); const nav = useNavigate(); const { settings, brand } = useApp(); const [q, setQ] = useState(''); const [slide, setSlide] = useState(0);
   const n = data?.banners?.length ?? 0;
   useEffect(() => { if (n < 2) return; const t = setInterval(() => setSlide((x) => (x + 1) % n), 7000); return () => clearInterval(t); }, [n]);
   if (loading) return <Loading />; if (error || !data) return <div className="container-x py-10"><ErrorBox message={error || 'Could not load'} retry={reload} /></div>;
@@ -66,16 +75,16 @@ export default function Home() {
           {!isMobile && <div><HeroScene products={stage} name={brand.name} />{n > 1 && <div className="mt-2 flex justify-center gap-2">{data.banners.map((b: any, i: number) => <button key={b.id} aria-label={`Slide ${i + 1}`} onClick={() => setSlide(i)} className={`h-2.5 rounded-full transition-all ${i === slide % n ? 'w-6 bg-brand' : 'w-2.5 bg-white/30'}`} />)}</div>}</div>}
         </div>
       </section>
-      {isMobile && <MobileFirstProducts items={pop.data?.items ?? []} />}
+      {isMobile && <MobileAllProducts />}
 
-      <section className="order-4 md:order-none container-x relative z-10 -mt-2">
+      <section className="order-4 max-md:hidden md:order-none container-x relative z-10 -mt-2">
         <div className="card grid grid-cols-2 divide-line sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">
           {[['bolt', 'Instant delivery', 'Automatic products arrive in seconds'], ['shield', 'Secure wallet', 'Every rupee tracked in a ledger'], ['tag', 'Clear pricing', 'Prices shown in PKR, per plan'], ['headset', 'Real support', 'Tickets and WhatsApp'], ['check', 'Verified payments', 'Each deposit is checked by our team']].map(([i, t, d]) => (
             <div key={t} className="flex flex-col items-center gap-1 p-5 text-center"><Icon name={i} className="h-8 w-8 text-brand drop-shadow-[0_0_10px_rgb(var(--brand)/.8)]" /><div className="mt-1 font-bold text-navy-900">{t}</div><div className="text-xs text-slate-500">{d}</div></div>))}
         </div>
       </section>
 
-      {cats.length > 0 && <section className="order-3 md:order-none container-x mt-8 md:mt-14"><Head eyebrow="Explore categories" title={<><span className="md:hidden">Browse by Categories</span><span className="hidden md:inline">Browse by Category</span></>} sub="Find exactly what you need from our wide range of digital products." to="/products" cta="View All Products" />
+      {cats.length > 0 && <section className="order-3 max-md:hidden md:order-none container-x mt-8 md:mt-14"><Head eyebrow="Explore categories" title={<><span className="md:hidden">Browse by Categories</span><span className="hidden md:inline">Browse by Category</span></>} sub="Find exactly what you need from our wide range of digital products." to="/products" cta="View All Products" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {cats.map((c) => <Link key={c.slug} to={`/products?category=${c.slug}`} className="card group flex min-h-[112px] flex-col items-center justify-center gap-3 p-4 text-center transition duration-300 hover:-translate-y-1 hover:shadow-glow"><Icon name={c.icon || 'box'} className="h-9 w-9 text-brand drop-shadow-[0_0_12px_rgb(var(--brand)/.9)] transition group-hover:scale-110 group-hover:text-cyan2" /><span className="text-sm font-bold leading-tight text-navy-900">{c.name}</span></Link>)}
         </div></section>}
