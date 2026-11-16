@@ -28,7 +28,8 @@
 
   html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
   body { @apply bg-mist text-slate-800 font-sans antialiased; font-feature-settings: 'cv11', 'ss01', 'tnum' 0; transition: background-color .25s; }
-  [data-mode='dark'] body { background-image: radial-gradient(900px 520px at 85% -8%, rgb(var(--brand) / .16), transparent 70%), radial-gradient(700px 480px at -5% 55%, rgb(var(--brand) / .10), transparent 70%); background-attachment: fixed; }
+  /* The glow sits on its own fixed layer. (background-attachment: fixed forces a full-screen repaint on every scroll frame, which made phones hang in dark mode.) */
+  [data-mode='dark'] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; transform: translateZ(0); background-image: radial-gradient(900px 520px at 85% -8%, rgb(var(--brand) / .16), transparent 70%), radial-gradient(700px 480px at -5% 55%, rgb(var(--brand) / .10), transparent 70%); }
   h1, h2, h3 { @apply text-navy-900 tracking-tight; }
   :focus-visible { @apply outline-2 outline-offset-2 outline-brand; }
   ::selection { background: rgb(var(--brand) / .25); }
@@ -101,3 +102,11 @@
 [data-mode='dark'] .border-amber-300 { border-color: rgb(245 158 11 / .4); }
 input[type='file']::file-selector-button { margin-right: .75rem; cursor: pointer; border: 1px solid rgb(var(--line)); border-radius: .6rem; padding: .45rem .9rem; font-weight: 600; font-size: .8rem; background: rgb(var(--surface)); color: inherit; transition: border-color .15s; }
 input[type='file']::file-selector-button:hover { border-color: rgb(var(--brand)); }
+
+/* Phones: cheaper paint. Same look, lighter effects (desktop unchanged). */
+@media (max-width: 767px) {
+  [data-mode='dark'] .card { box-shadow: 0 0 0 1px rgb(var(--brand) / .04) inset, 0 8px 16px -14px rgb(0 0 0 / .9); }
+  .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgb(var(--n900) / .92); }
+  .backdrop-blur { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .drop-shadow-\[0_0_10px_rgb\(var\(--brand\)\/\.55\)\] { filter: none; }
+}
