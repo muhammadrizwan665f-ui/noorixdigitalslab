@@ -73,6 +73,11 @@ test('sitemap.xml: only canonical, public, indexable, live URLs; robots.txt bloc
   const rb = await (await get('/robots.txt')).text(); assert.match(rb, /Disallow: \/admin/); assert.match(rb, /Disallow: \/dashboard/); assert.match(rb, /Disallow: \/api\//); assert.match(rb, /Sitemap: https:\/\/bmart\.store\/sitemap\.xml/); assert.ok(!/^Disallow: \/$/m.test(rb));
 });
 
+test('Search Console verification file path is passed through to static assets, not treated as an app route', async () => {
+  const env = makeEnv({ SITE_URL: 'https://bmart.store', ASSETS: { fetch: async (r: Request) => new Response('google-site-verification: x', { status: /google/.test(r.url) ? 200 : 404 }) } });
+  for (const p of ['/google69b7376fbb088ee3.html', '/google69b7376fbb088ee3']) { const r = await createApp().fetch(new Request('https://bmart.store' + p), env); assert.equal(r.status, 200, p); assert.match(await r.text(), /google-site-verification/); }
+});
+
 test('blog: list + articles with BlogPosting schema, breadcrumbs and canonical', async () => {
   const { get } = await setup(); const list = await (await get('/blog')).text(); assert.equal(canonical(list), 'https://bmart.store/blog'); for (const p of POSTS) assert.match(list, new RegExp(`/blog/${p.slug}`));
   const h = await (await get(`/blog/${POSTS[0].slug}`)).text(); const a = ld(h).find((x) => x['@type'] === 'BlogPosting'); assert.equal(a.headline, POSTS[0].title); assert.equal(a.datePublished, POSTS[0].published); assert.equal(meta(h, 'og:type'), 'article'); assert.match(h, /<h1>How Digital Subscriptions Work/);

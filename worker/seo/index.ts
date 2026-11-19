@@ -45,6 +45,8 @@ export async function pageHandler(c: any) {
   const host = new URL(site).hostname;
   if (url.hostname === `www.${host}`) return c.redirect(site + url.pathname + url.search, 301);
   if (url.pathname.length > 1 && url.pathname.endsWith('/')) return c.redirect(url.pathname.replace(/\/+$/, '') + url.search, 301);
+  // Google Search Console verification file (served as a static asset, with or without .html)
+  if (/^\/google[a-z0-9]+(\.html)?$/i.test(url.pathname)) return c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.text('Not found', 404);
   if (/\.[a-z0-9]{2,5}$/i.test(url.pathname) || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/files/')) return c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.text('Not found', 404);
   let page: SeoPage;
   try { page = await resolvePage(c.env, url.pathname, url.searchParams); } catch (e) { console.error('seo render failed', e); return c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.text('Error', 500); }
