@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { Link, Router, Routes, useNavigate, useRouter } from './lib/router';
 import { AppProvider, useApp } from './lib/store';
+import { useRouteSeo } from './lib/seo';
 import { ThemeProvider } from './lib/theme';
 import { PublicShell } from './components/Layout';
 import { Loading, Toasts } from './components/ui';
@@ -15,6 +16,7 @@ const Login = lz(auth, 'Login'), Register = lz(auth, 'Register'), Forgot = lz(au
 const CmsPage = lz(info, 'CmsPage'), Support = lz(info, 'Support'), TrackOrder = lz(info, 'TrackOrder'), NotFound = lz(info, 'NotFound');
 const D = { DashboardShell: lz(dash, 'DashboardShell'), Overview: lz(dash, 'Overview'), Wallet: lz(dash, 'Wallet'), Orders: lz(dash, 'Orders'), OrderDetail: lz(dash, 'OrderDetail'), Tickets: lz(dash, 'Tickets'), TicketDetail: lz(dash, 'TicketDetail'), Notifications: lz(dash, 'Notifications'), Settings: lz(dash, 'Settings') };
 
+const blog = () => import('./pages/Blog'); const BlogIndex = lz(blog, 'BlogIndex'), BlogPost = lz(blog, 'BlogPost');
 const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 function Guard({ children, staff }: { children: ReactNode; staff?: boolean }) {
@@ -26,14 +28,14 @@ function Guard({ children, staff }: { children: ReactNode; staff?: boolean }) {
 }
 
 function Routed() {
-  const { path } = useRouter(); const { settings, me } = useApp();
+  const { path } = useRouter(); const { settings, me } = useApp(); useRouteSeo();
   if (path.startsWith('/admin')) return <Guard staff><Suspense fallback={<Loading />}><AdminApp /></Suspense></Guard>;
   const maint = settings.maintenance === '1' && !me.user?.isStaff && !/^\/(login|register|forgot-password|reset-password)/.test(path);
   const dashPage = (n: ReactNode) => <Guard><D.DashboardShell>{n}</D.DashboardShell></Guard>;
   return <PublicShell>
     {maint && <div className="bg-amber-100 px-4 py-3 text-center text-sm font-medium text-amber-900">The store is under maintenance — browsing is available but orders are paused.</div>}
     <Suspense fallback={<Loading />}><Routes fallback={<NotFound />} routes={[
-      ['/', () => <Home />], ['/products', () => <Products />], ['/products/:slug', (p) => <ProductDetail key={p.slug} slug={p.slug} />], ['/cart', () => <Cart />],
+      ['/', () => <Home />], ['/products', () => <Products />], ['/products/:slug', (p) => <ProductDetail key={p.slug} slug={p.slug} />], ['/category/:slug', (p) => <Products key={p.slug} fixedCategory={p.slug} />], ['/blog', () => <BlogIndex />], ['/blog/:slug', (p) => <BlogPost slug={p.slug} />], ['/cart', () => <Cart />],
       ['/login', () => <Login />], ['/register', () => <Register />], ['/forgot-password', () => <Forgot />], ['/reset-password', () => <Reset />], ['/verify-email', () => <VerifyEmail />],
       ['/track-order', () => <TrackOrder />], ['/support', () => <Support />], ['/page/:slug', (p) => <CmsPage slug={p.slug} />],
       ['/dashboard', () => dashPage(<D.Overview />)], ['/dashboard/wallet', () => dashPage(<D.Wallet />)], ['/dashboard/orders', () => dashPage(<D.Orders />)], ['/dashboard/orders/:no', (p) => dashPage(<D.OrderDetail key={p.no} orderNo={p.no} />)],

@@ -8,7 +8,7 @@ import { hashPassword } from '../../worker/lib/crypto';
 
 const WEB = join(import.meta.dirname, '../../.scratch/web');
 const TYPES: Record<string, string> = { '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.html': 'text/html' };
-const env = makeEnv();
+const env = makeEnv({ SITE_URL: process.env.SITE_URL || 'http://localhost:8799' });
 env.ASSETS = { async fetch(req: Request) {
   const p = new URL(req.url).pathname; let f = join(WEB, p);
   if (!existsSync(f) || p === '/' || !extname(p)) f = join(WEB, 'index.html');
@@ -22,6 +22,8 @@ db.sqlite.exec(`INSERT INTO users(id,email,name,password_hash,is_staff,email_ver
  UPDATE payment_methods SET enabled=1, account_title='Noorix Test', account_number='0300-1234567' WHERE code='easypaisa';
  INSERT INTO product_inventory(id,plan_id,secret_enc,secret_hash) VALUES('x','pln_canva-pro_0','v1.x','h');`);
 db.sqlite.exec("DELETE FROM product_inventory");
+// one genuine (non-demo) product so SEO output can be checked end to end
+db.sqlite.exec(`INSERT INTO products(id,slug,category_id,name,short_description,description,status,delivery_type,features,is_demo) VALUES('p_seo','seo-sample-tool','cat_ai-tools','SEO Sample Tool','A sample tool used to test search metadata.','Original description for the sample tool.','active','manual','["Feature one","Feature two"]',0); INSERT INTO product_plans(id,product_id,name,duration_label,price) VALUES('pl_seo1','p_seo','Monthly','1 month',150000);`);
 const app = createApp();
 createServer(async (req, res) => {
   const chunks: Buffer[] = []; for await (const c of req) chunks.push(c as Buffer);

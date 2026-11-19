@@ -282,7 +282,7 @@ test('public catalogue: search, filters, sort, pagination, stock; admin product 
   await fund(app, env, admin, cust, 50000, 'FUND0060'); const r = await checkout(cust, 'pln_netflix_0', 'track-key-0001');
   const tr = await anon.post('/api/public/track', { orderNo: r.json.orderNo, email }); assert.equal(tr.status, 200); assert.ok(!JSON.stringify(tr.json).includes('PROVIDER'));
   assert.equal((await anon.post('/api/public/track', { orderNo: r.json.orderNo, email: 'other@example.com' })).status, 404);
-  const sm = await app.fetch(new Request('http://localhost/sitemap.xml'), env); assert.match(await sm.text(), /products\/netflix/);
+  const sm = await app.fetch(new Request('http://localhost/sitemap.xml'), env); const smx = await sm.text(); assert.match(smx, /products\/new-thing/); assert.doesNotMatch(smx, /products\/netflix/, 'seeded demo products are not submitted to search engines');
   const del = await admin.del('/api/admin/products/' + c.json.id); assert.equal(del.status, 200);
   const hide = await admin.del('/api/admin/products/prd_netflix'); assert.equal(hide.json.hidden, true);
 });

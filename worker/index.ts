@@ -4,7 +4,8 @@ import { AppError } from './lib/http';
 import { csrfGuard, loadSession } from './lib/auth';
 import { auth, setup } from './routes/auth';
 import { googleAuth } from './routes/google';
-import { pub, seo } from './routes/public';
+import { pub } from './routes/public';
+import { seo, pageHandler } from './seo';
 import { account, files } from './routes/account';
 import { ops } from './routes/admin_ops';
 import { manage } from './routes/admin_manage';
@@ -73,6 +74,7 @@ export function createApp() {
     return r;
   });
   app.all('/api/*', (c) => c.json({ error: { code: 'not_found', message: 'Unknown API route' } }, 404));
+  app.get('*', pageHandler);
   app.notFound((c) => (c.env.ASSETS ? c.env.ASSETS.fetch(c.req.raw) : c.text('Not found', 404)));
   return app;
 }
