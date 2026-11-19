@@ -4,15 +4,20 @@ import { useApi, useApp } from '../lib/store';
 import { Badge, ErrorBox, Icon, Loading, Pagination, ProductArt, Empty } from '../components/ui';
 import { ProductCard } from '../components/ProductCard';
 import { pkr } from '../lib/format';
+import { useSeo, useNoindex } from '../lib/seo';
+import { CATEGORY_COPY, GENERIC_CATEGORY_INTRO } from '../content/categories';
 
 import { MobileProductDetail } from './MobileProduct';
 import { useIsMobile } from '../lib/useMedia';
 
-export function Products() {
+/** `fixedCategory` is set on the clean /category/:slug URLs; the old /products?category= links keep working. */
+export function Products({ fixedCategory }: { fixedCategory?: string }) {
   const sp = useSearch(); const nav = useNavigate(); const { brand } = useApp();
-  const q = sp.get('q') ?? '', category = sp.get('category') ?? '', sort = sp.get('sort') ?? 'popular', flag = sp.get('flag') ?? '', min = sp.get('min') ?? '', max = sp.get('max') ?? '', page = Number(sp.get('page') ?? 1);
+  const basePath = fixedCategory ? `/category/${fixedCategory}` : '/products';
+  const q = sp.get('q') ?? '', category = fixedCategory ?? sp.get('category') ?? '', sort = sp.get('sort') ?? 'popular', flag = sp.get('flag') ?? '', min = sp.get('min') ?? '', max = sp.get('max') ?? '', page = Number(sp.get('page') ?? 1);
   const [text, setText] = useState(q); useEffect(() => setText(q), [q]);
-  const set = (k: string, v: string) => { const n = new URLSearchParams(sp); v ? n.set(k, v) : n.delete(k); if (k !== 'page') n.delete('page'); nav('/products?' + n.toString()); };
+  const go = (path: string, n: URLSearchParams) => { const qs = n.toString(); nav(path + (qs ? `?${qs}` : '')); };
+  const set = (k: string, v: string) => { const n = new URLSearchParams(sp); n.delete('page'); if (k === 'category') { n.delete('category'); go(v ? `/category/${v}` : '/products', n); return; } v ? n.set(k, v) : n.delete(k); if (k === 'page' && v) n.set('page', v); go(basePath, n); };
   const cats = useApi<any[]>('/public/categories');
   const qs = new URLSearchParams({ sort, page: String(page), pageSize: '12' }); if (q) qs.set('q', q); if (category) qs.set('category', category); if (flag) qs.set('flag', flag); if (min) qs.set('min', min); if (max) qs.set('max', max);
   const { data, loading, error, reload } = useApi<any>('/public/products?' + qs.toString());
@@ -20,10 +25,16 @@ export function Products() {
   useEffect(() => { setCatOpen(false); }, [category]);
   useEffect(() => { if (!catOpen) return; const off = (e: Event) => { if (!catRef.current?.contains(e.target as Node)) setCatOpen(false); }; const esc = (e: KeyboardEvent) => e.key === 'Escape' && setCatOpen(false); document.addEventListener('pointerdown', off); document.addEventListener('keydown', esc); return () => { document.removeEventListener('pointerdown', off); document.removeEventListener('keydown', esc); }; }, [catOpen]);
   const title = flag === 'deal' ? "Today's Deals" : flag === 'trending' ? 'Trending Products' : cats.data?.find((c) => c.slug === category)?.name ?? 'All Products';
-  useEffect(() => { document.title = `${title} — ${brand.name}`; }, [title, brand.name]);
+  const cat = cats.data?.find((c) => c.slug === category);
+  const intro = cat ? (cat.description?.trim() || CATEGORY_COPY[cat.slug]?.intro || GENERIC_CATEGORY_INTRO(cat.name)) : '';
+  useSeo(fixedCategory ? (cat ? `${cat.name} in Pakistan — Buy Online | ${brand.name}` : undefined) : `${title} — ${brand.name}`, fixedCategory ? intro && `${intro} Prices in PKR on ${brand.name}.`.slice(0, 158) : `Browse every digital product on ${brand.name}: streaming, AI tools, software and more. Compare plans and prices in PKR.`);
+  useNoindex(!!(fixedCategory && cats.data && !cat));
+  if (fixedCategory && cats.data && !cat) return <div className="container-x py-20 text-center"><h1 className="text-3xl font-extrabold">Category not found</h1><p className="mt-2 text-slate-600">That category does not exist.</p><Link to="/products" className="btn-primary mt-6">All products</Link></div>;
   return (
     <div className="container-x py-8">
+      {fixedCategory && <nav aria-label="Breadcrumb" className="mb-3 text-sm text-slate-500"><Link to="/" className="hover:text-brand">Home</Link> / <Link to="/products" className="hover:text-brand">All Products</Link> / <span className="text-slate-700">{cat?.name ?? '…'}</span></nav>}
       <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
+      {fixedCategory && cat && <div className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base"><p>{intro}</p>{CATEGORY_COPY[cat.slug] && <><h2 className="mt-4 text-base font-bold text-navy-900">Before you buy</h2><ul className="mt-1 list-disc space-y-1 pl-5">{CATEGORY_COPY[cat.slug].tips.map((t) => <li key={t}>{t}</li>)}</ul></>}</div>}
       <div className="mt-6 grid gap-6 lg:grid-cols-[250px_1fr]">
         <aside className="space-y-5">
           <div ref={catRef} className="relative md:hidden">
@@ -40,7 +51,7 @@ export function Products() {
             <ul className="space-y-0.5 text-sm"><li><button onClick={() => set('category', '')} className={`w-full rounded-md px-2 py-1.5 text-left ${!category ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}>All categories</button></li>
               {cats.data?.map((c) => <li key={c.slug}><button onClick={() => set('category', c.slug)} className={`flex w-full justify-between rounded-md px-2 py-1.5 text-left ${category === c.slug ? 'bg-brand-50 font-semibold text-brand' : 'hover:bg-slate-50'}`}><span>{c.name}</span><span className="text-xs text-slate-400">{c.n}</span></button></li>)}</ul></div>
           <div className="card p-4"><h2 className="mb-2 text-sm font-bold">Price (PKR)</h2>
-            <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); const n = new URLSearchParams(sp); ['min', 'max'].forEach((k) => { const v = String(f.get(k) ?? ''); v ? n.set(k, v) : n.delete(k); }); n.delete('page'); nav('/products?' + n.toString()); }}>
+            <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); const n = new URLSearchParams(sp); ['min', 'max'].forEach((k) => { const v = String(f.get(k) ?? ''); v ? n.set(k, v) : n.delete(k); }); n.delete('page'); go(basePath, n); }}>
               <input name="min" defaultValue={min} type="number" min="0" placeholder="Min" aria-label="Minimum price" className="input !px-2" /><span className="text-slate-400">–</span><input name="max" defaultValue={max} type="number" min="0" placeholder="Max" aria-label="Maximum price" className="input !px-2" /><button className="btn-dark btn-sm">Go</button></form></div>
         </aside>
         <div>
@@ -48,7 +59,7 @@ export function Products() {
             <form className="relative min-w-[200px] flex-1" role="search" onSubmit={(e) => { e.preventDefault(); set('q', text.trim()); }}><Icon name="search" className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" /><input className="input !pl-10" placeholder="Search products…" aria-label="Search products" value={text} onChange={(e) => setText(e.target.value)} /></form>
             <select className="input !w-auto" aria-label="Sort" value={sort} onChange={(e) => set('sort', e.target.value)}><option value="popular">Most popular</option><option value="newest">Newest</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="name">Name A–Z</option></select>
           </div>
-          {loading ? <Loading /> : error ? <ErrorBox message={error} retry={reload} /> : data.items.length === 0 ? <div className="card"><Empty title="No products found" hint="Try a different search or clear the filters." action={<Link to="/products" className="btn-outline btn-sm">Clear filters</Link>} /></div> : (
+          {loading ? <Loading /> : error ? <ErrorBox message={error} retry={reload} /> : data.items.length === 0 ? <div className="card"><Empty title="No products found" hint="Try a different search or clear the filters." action={<Link to={basePath} className="btn-outline btn-sm">Clear filters</Link>} /></div> : (
             <><div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">{data.items.map((p: any) => <ProductCard key={p.id} p={p} />)}</div><Pagination page={page} total={data.total} pageSize={12} onChange={(p) => set('page', String(p))} /></>)}
         </div>
       </div>
@@ -61,7 +72,9 @@ export function ProductDetail({ slug }: { slug: string }) {
   const { data: p, loading, error, reload } = useApi<any>('/public/products/' + slug);
   const { addToCart, setInput, me, toast, settings, brand } = useApp(); const nav = useNavigate();
   const [planId, setPlanId] = useState(''); const [input, setIn] = useState<Record<string, string>>({}); const [tab, setTab] = useState('description'); const [err, setErr] = useState('');
-  useEffect(() => { if (p) { setPlanId(p.plans.find((x: any) => x.inStock)?.id ?? p.plans[0]?.id ?? ''); document.title = p.seoTitle || `${p.name} — ${brand.name}`; } }, [p]);
+  useEffect(() => { if (p) { setPlanId(p.plans.find((x: any) => x.inStock)?.id ?? p.plans[0]?.id ?? ''); } }, [p]);
+  useSeo(p ? (p.seoTitle || `${p.name} Price in Pakistan — Buy Online | ${brand.name}`).slice(0, 70) : undefined, p ? (p.seoDescription || `${p.shortDescription || p.name} From ${pkr(Math.min(...p.plans.map((x: any) => x.price)))}.`).slice(0, 158) : undefined);
+  useNoindex(!loading && (!!error || !p));
   if (loading) return <Loading />; if (error || !p) return <div className="container-x py-10"><ErrorBox message={error || 'Product not found'} /></div>;
   const plan = p.plans.find((x: any) => x.id === planId);
   const line = () => {
@@ -74,7 +87,7 @@ export function ProductDetail({ slug }: { slug: string }) {
   if (isMobile) return <MobileProductDetail p={p} plan={plan} planId={planId} setPlanId={setPlanId} input={input} setIn={setIn} err={err} add={add} />;
   return (
     <div className="container-x py-8">
-      <nav className="mb-4 text-sm text-slate-500"><Link to="/products" className="hover:text-brand">Products</Link> / <Link to={`/products?category=${p.categorySlug}`} className="hover:text-brand">{p.category}</Link> / <span className="text-slate-700">{p.name}</span></nav>
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-slate-500"><Link to="/" className="hover:text-brand">Home</Link> / <Link to="/products" className="hover:text-brand">All Products</Link> / <Link to={`/category/${p.categorySlug}`} className="hover:text-brand">{p.category}</Link> / <span className="text-slate-700">{p.name}</span></nav>
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <div className="card flex flex-col gap-5 p-6 sm:flex-row">

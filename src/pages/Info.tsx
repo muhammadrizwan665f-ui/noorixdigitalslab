@@ -7,10 +7,13 @@ import { fmtDateTime, pkr, waLink } from '../lib/format';
 import { PoweredBy } from '../components/Brand';
 import { contactFrom } from '../lib/brand';
 import { policyFallback } from '../lib/policies';
+import { useSeo, useNoindex } from '../lib/seo';
 
 export function CmsPage({ slug }: { slug: string }) {
   const { data, loading, error } = useApi<any>('/public/pages/' + slug); const { brand, settings } = useApp();
-  useEffect(() => { const t = data?.title ?? policyFallback(slug, brand, contactFrom(settings))?.title; if (t) document.title = `${t} — ${brand.name}`; }, [data, slug, brand, settings]);
+  const seoTitle = data?.title ?? policyFallback(slug, brand, contactFrom(settings))?.title;
+  useSeo(seoTitle ? `${seoTitle} — ${brand.name}` : undefined);
+  useNoindex(!loading && (!!error || !data) && !seoTitle);
   if (loading) return <Loading />;
   const about = slug === 'about';
   const fb = (error || !data) && !loading ? policyFallback(slug, brand, contactFrom(settings)) : null;
@@ -20,7 +23,8 @@ export function CmsPage({ slug }: { slug: string }) {
 }
 
 export function Support() {
-  const { settings, me } = useApp(); const faqs = useApi<any[]>('/public/faqs'); const ct = contactFrom(settings); const wa = ct.whatsapp;
+  const { settings, me, brand } = useApp(); useSeo(`Support & FAQ — ${brand.name}`, `Get help with orders, wallet payments and delivery on ${brand.name}. Contact us on WhatsApp or by support ticket, and read the answers to common questions.`);
+  const faqs = useApi<any[]>('/public/faqs'); const ct = contactFrom(settings); const wa = ct.whatsapp;
   return <div className="container-x max-w-4xl py-10"><h1 className="text-2xl font-bold sm:text-3xl">Support</h1><p className="mt-1 text-slate-600">We usually reply within a few hours.</p>
     <div className="mt-6 grid gap-4 sm:grid-cols-2">
       <div className="card p-5"><h2 className="font-bold">Support tickets</h2><p className="mt-1 text-sm text-slate-600">Best for order and payment issues — you can attach screenshots and follow the conversation.</p><Link to={me.user ? '/dashboard/tickets' : '/login?next=/dashboard/tickets'} className="btn-primary mt-4">{me.user ? 'Open my tickets' : 'Log in to open a ticket'}</Link></div>
@@ -33,6 +37,7 @@ export function Support() {
 }
 
 export function TrackOrder() {
+  const { brand } = useApp(); useSeo(`Track your order — ${brand.name}`);
   const [orderNo, setNo] = useState(''); const [email, setEmail] = useState(''); const [res, setRes] = useState<any>(null); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true); setErr(''); setRes(null); try { setRes(await post('/public/track', { orderNo, email })); } catch (x) { setErr((x as ApiError).message); } finally { setBusy(false); } };
   return <div className="container-x max-w-2xl py-10"><h1 className="text-2xl font-bold sm:text-3xl">Track your order</h1><p className="mt-1 text-slate-600">Enter your order number and the email you registered with.</p>
@@ -44,4 +49,4 @@ export function TrackOrder() {
       <p className="mt-4 text-xs text-slate-500">Log in to your dashboard to view delivery details.</p></div>}</div>;
 }
 
-export function NotFound() { return <div className="container-x py-20 text-center"><h1 className="text-5xl font-extrabold text-brand">404</h1><p className="mt-2 text-slate-600">That page doesn&apos;t exist.</p><Link to="/" className="btn-primary mt-6">Go home</Link></div>; }
+export function NotFound() { useSeo('Page not found'); useNoindex(true); return <div className="container-x py-20 text-center"><h1 className="text-5xl font-extrabold text-brand">404</h1><p className="mt-2 text-slate-600">That page doesn&apos;t exist.</p><Link to="/" className="btn-primary mt-6">Go home</Link></div>; }

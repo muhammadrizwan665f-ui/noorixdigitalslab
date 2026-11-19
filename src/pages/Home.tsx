@@ -9,6 +9,7 @@ import { ProductCard } from '../components/ProductCard';
 import { splitName } from '../lib/brand';
 import { useIsMobile } from '../lib/useMedia';
 import { waLink } from '../lib/format';
+import { useSeo } from '../lib/seo';
 
 const Head = ({ eyebrow, title, sub, to, cta = 'View all' }: { eyebrow?: string; title: React.ReactNode; sub?: string; to?: string; cta?: string }) => (
   <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div>{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h2 className="text-2xl font-extrabold sm:text-4xl">{title}</h2>{sub && <p className="mt-2 max-w-xl text-sm text-slate-500 sm:text-base">{sub}</p>}</div>
@@ -37,6 +38,8 @@ function MobileAllProducts() {
 
 export default function Home() {
   const isMobile = useIsMobile(); const { data, error, loading, reload } = useApi<any>('/public/home'); const nav = useNavigate(); const { settings, brand } = useApp(); const [q, setQ] = useState(''); const [slide, setSlide] = useState(0);
+  const faqs = useApi<any[]>('/public/faqs');
+  useSeo(`${brand.name} — Buy Digital Subscriptions Online in Pakistan`, `Buy streaming, AI tools, software and digital subscriptions in Pakistan. Pay in PKR by Easypaisa, JazzCash or bank transfer. Powered by ${brand.parent}.`.slice(0, 158));
   const n = data?.banners?.length ?? 0;
   useEffect(() => { if (n < 2) return; const t = setInterval(() => setSlide((x) => (x + 1) % n), 7000); return () => clearInterval(t); }, [n]);
   if (loading) return <Loading />; if (error || !data) return <div className="container-x py-10"><ErrorBox message={error || 'Could not load'} retry={reload} /></div>;
@@ -86,7 +89,7 @@ export default function Home() {
 
       {cats.length > 0 && <section className="order-3 max-md:hidden md:order-none container-x mt-8 md:mt-14"><Head eyebrow="Explore categories" title={<><span className="md:hidden">Browse by Categories</span><span className="hidden md:inline">Browse by Category</span></>} sub="Find exactly what you need from our wide range of digital products." to="/products" cta="View All Products" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {cats.map((c) => <Link key={c.slug} to={`/products?category=${c.slug}`} className="card group flex min-h-[112px] flex-col items-center justify-center gap-3 p-4 text-center transition duration-300 hover:-translate-y-1 hover:shadow-glow"><Icon name={c.icon || 'box'} className="h-9 w-9 text-brand drop-shadow-[0_0_12px_rgb(var(--brand)/.9)] transition group-hover:scale-110 group-hover:text-cyan2" /><span className="text-sm font-bold leading-tight text-navy-900">{c.name}</span></Link>)}
+          {cats.map((c) => <Link key={c.slug} to={`/category/${c.slug}`} className="card group flex min-h-[112px] flex-col items-center justify-center gap-3 p-4 text-center transition duration-300 hover:-translate-y-1 hover:shadow-glow"><Icon name={c.icon || 'box'} className="h-9 w-9 text-brand drop-shadow-[0_0_12px_rgb(var(--brand)/.9)] transition group-hover:scale-110 group-hover:text-cyan2" /><span className="text-sm font-bold leading-tight text-navy-900">{c.name}</span></Link>)}
         </div></section>}
 
       {data.trending.length > 0 && <section className="order-4 md:order-none container-x mt-16"><div className="grid gap-6 xl:grid-cols-[280px_1fr]">
@@ -121,6 +124,17 @@ export default function Home() {
         <div className="grid flex-1 gap-4 sm:grid-cols-3">{[['wallet', 'Secure Payments', 'Easypaisa, JazzCash, bank'], ['bolt', 'Instant Activation', 'On automatic products'], ['headset', 'Dedicated Support', 'Tickets and WhatsApp']].map(([ic, t, d]) => <div key={t} className="flex items-center gap-3"><Icon name={ic} className="h-8 w-8 shrink-0 text-cyan2" /><div><div className="text-sm font-bold text-white">{t}</div><div className="text-xs text-slate-400">{d}</div></div></div>)}</div>
         <div className="rounded-2xl bg-gradient-to-r from-brand to-brand-600 px-8 py-3 text-center shadow-glow"><div className="text-xs text-white/80">Powered by</div><div className="text-2xl font-black italic text-white">{brand.name}</div></div>
       </div></section>
+
+      <section className="order-4 md:order-none container-x mt-16" aria-labelledby="about-store">
+        <h2 id="about-store" className="text-2xl font-extrabold sm:text-3xl">Buy digital subscriptions online in Pakistan</h2>
+        <div className="mt-3 max-w-3xl space-y-3 text-sm leading-relaxed text-slate-600 sm:text-base">
+          <p>{brand.name} is an online store for digital subscriptions and services. Browse streaming, AI tools, software and other digital products, compare the plans, see every price in PKR and order from your wallet balance. {brand.name} is powered by {brand.parent}.</p>
+          <p>Every product page shows the plans, the duration, whether the item is in stock and how it is delivered: instantly for automatic products, or by our team for manual ones. Add funds to your wallet with Bank Transfer, Easypaisa or JazzCash, and contact us on WhatsApp or through a support ticket if you need help.</p>
+        </div>
+        {cats.length > 0 && <><h3 className="mt-6 text-lg font-bold">Popular categories</h3><ul className="mt-2 flex flex-wrap gap-2 text-sm">{cats.map((c) => <li key={c.slug}><Link to={`/category/${c.slug}`} className="inline-block rounded-full border border-line px-3.5 py-1.5 font-medium hover:border-brand hover:text-brand">{c.name}</Link></li>)}</ul></>}
+        <p className="mt-4 text-sm text-slate-500">New to digital subscriptions? Read <Link to="/blog/how-digital-subscriptions-work" className="text-brand hover:underline">how digital subscriptions work</Link> and <Link to="/blog/how-to-choose-digital-services-safely" className="text-brand hover:underline">how to choose digital services safely</Link>.</p>
+        {faqs.data && faqs.data.length > 0 && <div className="mt-8"><h3 className="text-lg font-bold">Frequently asked questions</h3><div className="mt-3 max-w-3xl space-y-3">{faqs.data.map((f) => <details key={f.id} className="card group p-4"><summary className="cursor-pointer list-none font-semibold text-navy-900">{f.question}</summary><p className="mt-2 text-sm text-slate-600">{f.answer}</p></details>)}</div></div>}
+      </section>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function Header() {
   const cats = useApi<any[]>('/public/categories');
   const go = (e: React.FormEvent) => { e.preventDefault(); nav(`/products${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ''}`); setOpen(false); };
   const out = async () => { await logout(); nav('/'); };
-  const catItems: [string, string][] = (cats.data ?? []).map((c) => [`/products?category=${c.slug}`, c.name]);
+  const catItems: [string, string][] = (cats.data ?? []).map((c) => [`/category/${c.slug}`, c.name]);
   const promo = settings.announcement_active === '1' && settings.announcement ? settings.announcement : BRAND_DEFAULTS.promo;
   const on = (p: string) => path === p;
   return (
@@ -62,7 +62,7 @@ export function Header() {
           <div className="max-h-[80vh] overflow-y-auto border-t border-white/10 bg-navy-800 lg:hidden">
             <form onSubmit={go} className="container-x py-3"><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" aria-label="Search" className="w-full rounded-full border border-brand/30 bg-white/5 px-4 py-2.5 text-sm placeholder:text-slate-400" /></form>
             <div className="container-x flex flex-col pb-4 text-sm font-medium" onClick={() => setOpen(false)}>
-              {[['/', 'Home'], ['/products', 'All products'], ['/products?flag=deal', 'Deals'], ['/support', 'Help & FAQ'], ['/track-order', 'Track an order']].map(([to, l]) => <Link key={to} to={to} className="rounded-lg px-2 py-3 hover:bg-white/10">{l}</Link>)}
+              {[['/', 'Home'], ['/products', 'All products'], ['/products?flag=deal', 'Deals'], ['/blog', 'Blog'], ['/support', 'Help & FAQ'], ['/track-order', 'Track an order']].map(([to, l]) => <Link key={to} to={to} className="rounded-lg px-2 py-3 hover:bg-white/10">{l}</Link>)}
               {catItems.length > 0 && <div className="mt-2 border-t border-white/10 pt-3"><div className="px-2 pb-1 text-xs font-semibold text-slate-400">Categories</div>{catItems.map(([to, l]) => <Link key={to} to={to} className="block rounded-lg px-2 py-2.5 text-slate-300 hover:bg-white/10">{l}</Link>)}</div>}
               <div className="mt-2 border-t border-white/10 pt-3">
                 {me.user ? (<><Link to="/dashboard" className="block rounded-lg px-2 py-3 hover:bg-white/10">My dashboard · {pkr(me.balance)}</Link>{me.user.isStaff && <Link to="/admin" className="block rounded-lg px-2 py-3 hover:bg-white/10">Admin panel</Link>}<button className="w-full rounded-lg px-2 py-3 text-left hover:bg-white/10" onClick={out}>Log out</button></>)
@@ -90,7 +90,7 @@ export function Footer() {
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent" aria-hidden="true" />
       <div className="container-x grid gap-10 py-12 md:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1.5fr_1fr] lg:divide-x lg:divide-white/10 [&>div]:lg:pl-8 [&>div:first-child]:lg:pl-0">
         <div><Logo size="lg" /><p className="mt-3 text-xs text-slate-400">{brand.tagline}</p><PoweredBy variant="card" /></div>
-        {col('Quick Links', [['/', 'Home'], ['/products', 'All Products'], ['/products?flag=deal', 'Deals'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
+        {col('Quick Links', [['/', 'Home'], ['/products', 'All Products'], ['/products?flag=deal', 'Deals'], ['/blog', 'Blog'], ['/track-order', 'Track an order'], ['/support', 'Support']])}
         {col('Legal', [['/page/terms', 'Terms & Conditions'], ['/page/privacy', 'Privacy Policy'], ['/page/refund', 'Refund Policy'], ['/page/return', 'Return Policy'], ['/page/delivery', 'Digital Delivery Policy'], ['/support', 'FAQ & Contact']])}
         <div><h4 className="mb-4 text-sm font-bold text-white">Contact Us</h4>
           <ul className="space-y-3 text-sm">

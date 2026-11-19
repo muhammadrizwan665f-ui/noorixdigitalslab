@@ -9,24 +9,24 @@ import { requireAuth } from '../lib/auth';
 
 export const pub = new Hono<HonoEnv>();
 
-const IN_STOCK = `EXISTS (SELECT 1 FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active' AND (
+export const IN_STOCK = `EXISTS (SELECT 1 FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active' AND (
   (p.delivery_type='automatic' AND EXISTS (SELECT 1 FROM product_inventory i WHERE i.plan_id=pl.id AND i.status='available'))
   OR (p.delivery_type<>'automatic' AND (pl.stock_limit IS NULL OR pl.stock_limit>0))))`;
-const CARD_SQL = `SELECT p.id, p.slug, p.name, p.short_description, p.brand_color, p.image_key, p.delivery_type, p.is_featured, p.is_trending, p.is_deal, p.is_demo, p.sales_count,
+export const CARD_SQL = `SELECT p.id, p.slug, p.name, p.short_description, p.brand_color, p.image_key, p.delivery_type, p.is_featured, p.is_trending, p.is_deal, p.is_demo, p.sales_count,
   c.name category_name, c.slug category_slug,
   (SELECT MIN(price) FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active') from_price,
   (SELECT compare_price FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active' ORDER BY price LIMIT 1) compare_price,
   ${IN_STOCK} in_stock
   FROM products p JOIN product_categories c ON c.id=p.category_id`;
-const WHERE_LIVE = `p.status='active' AND c.active=1 AND EXISTS (SELECT 1 FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active')`;
+export const WHERE_LIVE = `p.status='active' AND c.active=1 AND EXISTS (SELECT 1 FROM product_plans pl WHERE pl.product_id=p.id AND pl.status='active')`;
 
-const card = (r: any) => ({
+export const card = (r: any) => ({
   id: r.id, slug: r.slug, name: r.name, shortDescription: r.short_description, brandColor: r.brand_color,
   imageUrl: r.image_key ? `/files/${r.image_key}` : null, deliveryType: r.delivery_type, category: r.category_name, categorySlug: r.category_slug,
   fromPrice: r.from_price, comparePrice: r.compare_price, inStock: !!r.in_stock, featured: !!r.is_featured, trending: !!r.is_trending, deal: !!r.is_deal, demo: !!r.is_demo,
 });
 const PUBLIC_SETTINGS = ['site_name', 'tagline', 'whatsapp', 'support_email', 'announcement', 'announcement_active', 'hero_title', 'hero_subtitle', 'currency', 'maintenance', 'registration_open', 'min_deposit', 'brand_name', 'brand_tagline', 'brand_parent', 'brand_slogan', 'contact_address', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube', 'social_x'];
-const pubSettings = (s: Record<string, string>) => Object.fromEntries(PUBLIC_SETTINGS.map((k) => [k, s[k] ?? '']));
+export const pubSettings = (s: Record<string, string>) => Object.fromEntries(PUBLIC_SETTINGS.map((k) => [k, s[k] ?? '']));
 
 pub.get('/settings', async (c) => c.json(pubSettings(await getSettings(c.env))));
 
@@ -112,16 +112,3 @@ pub.post('/quote', requireAuth, async (c) => {
 pub.get('/payment-methods', async (c) =>
   c.json((await c.env.DB.prepare("SELECT code,name,type,account_title,account_number,instructions,min_amount,max_amount FROM payment_methods WHERE enabled=1 ORDER BY sort_order").all<any>()).results
     .map((m) => ({ code: m.code, name: m.name, type: m.type, accountTitle: m.account_title, accountNumber: m.account_number, instructions: m.instructions, minAmount: m.min_amount, maxAmount: m.max_amount }))));
-
-export const seo = new Hono<HonoEnv>();
-seo.get('/sitemap.xml', async (c) => {
-  const base = c.env.SITE_URL;
-  const prods = await c.env.DB.prepare("SELECT slug,updated_at FROM products WHERE status='active'").all<any>();
-  const cats = await c.env.DB.prepare('SELECT slug FROM product_categories WHERE active=1').all<any>();
-  const pages = await c.env.DB.prepare('SELECT slug FROM cms_pages WHERE published=1').all<any>();
-  const u = (p: string, lm?: string) => `<url><loc>${base}${p}</loc>${lm ? `<lastmod>${lm.slice(0, 10)}</lastmod>` : ''}</url>`;
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[u('/'), u('/products'), u('/support'), u('/track-order'),
-    ...cats.results.map((x) => u(`/products?category=${x.slug}`)), ...prods.results.map((x) => u(`/products/${x.slug}`, x.updated_at)), ...pages.results.map((x) => u(`/page/${x.slug}`))].join('')}</urlset>`;
-  return c.body(xml, 200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
-});
-seo.get('/robots.txt', (c) => c.text(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /api/\nSitemap: ${c.env.SITE_URL}/sitemap.xml\n`));

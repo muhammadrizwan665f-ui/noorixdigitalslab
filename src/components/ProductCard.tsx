@@ -16,7 +16,7 @@ export function ProductCard({ p, priority = false }: { p: any; compact?: boolean
         {badge && <span className={`absolute left-2 top-2 max-w-[calc(100%-1rem)] truncate rounded-lg px-2 py-0.5 text-[10px] font-bold text-white shadow-lg md:left-3 md:top-3 md:px-2.5 md:py-1 md:text-[11px] ${badge.c}`}>{badge.t}</span>}
         <div className="transition duration-300 group-hover:scale-110 md:[filter:drop-shadow(0_12px_22px_var(--glow))]" style={{ ['--glow' as string]: `${p.brandColor}80` }}>
           {p.imageUrl
-            ? <img src={p.imageUrl} alt={p.name} width={96} height={96} loading={priority ? 'eager' : 'lazy'} decoding="async" {...(priority ? { fetchPriority: 'high' as const } : {})} className="max-h-16 max-w-[80%] object-contain md:max-h-24" />
+            ? <img src={p.imageUrl} alt={`${p.name}${p.category ? ` — ${p.category}` : ''}`} width={96} height={96} loading={priority ? 'eager' : 'lazy'} decoding="async" {...(priority ? { fetchPriority: 'high' as const } : {})} className="max-h-16 max-w-[80%] object-contain md:max-h-24" />
             : <ProductArt name={p.name} color={p.brandColor} size="h-14 w-14 md:h-[72px] md:w-[72px]" text="text-xl md:text-2xl" />}
         </div>
       </div>
