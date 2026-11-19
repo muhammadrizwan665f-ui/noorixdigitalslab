@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { createApp } from '../worker/index';
 import { Client, makeEnv, newStaff } from './helpers/app';
 import { POSTS } from '../src/content/blog';
+import { readFileSync } from 'node:fs';
+import { resetTemplateCache } from '../worker/seo';
 
 const TEMPLATE = '<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>old</title><meta name="description" content="old" /><link rel="canonical" href="https://old/" /><meta property="og:title" content="old" /><script type="application/ld+json">{"old":1}</script></head><body><div id="root"></div><script type="module" src="/assets/x.js"></script></body></html>';
 async function setup() {
@@ -90,4 +92,17 @@ test('user-controlled text cannot break out of HTML or JSON-LD', async () => {
   const sm = await (await get('/sitemap.xml')).text(); const loc = [...sm.matchAll(/products\/(evil[^<]*)</g)][0]?.[1]; assert.ok(loc);
   const h = await (await get('/products/' + loc)).text();
   assert.ok(!h.includes('<img src=x') && !h.includes('<script>alert'), 'raw markup never appears'); assert.equal((h.match(/<\/script>/g) ?? []).length, (h.match(/<script/g) ?? []).length, 'script tags stay balanced'); ld(h);
+});
+
+test('Google Tag Manager: exactly one head script and one noscript iframe (right after <body>) on public, private and 404 pages', async () => {
+  const real = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const env = makeEnv({ SITE_URL: 'https://bmart.store', ASSETS: { fetch: async () => new Response(real, { headers: { 'content-type': 'text/html' } }) } });
+  const app = createApp(); resetTemplateCache();
+  for (const p of ['/', '/products', '/category/ai-tools', '/blog', '/login', '/dashboard', '/nope']) {
+    const h = await (await app.fetch(new Request('https://bmart.store' + p), env)).text();
+    assert.equal((h.match(/googletagmanager\.com\/gtm\.js\?id=/g) ?? []).length, 1, 'one GTM script on ' + p);
+    assert.equal((h.match(/googletagmanager\.com\/ns\.html\?id=GTM-TVLLGQ36/g) ?? []).length, 1, 'one noscript iframe on ' + p);
+    assert.match(h, /'dataLayer','GTM-TVLLGQ36'/); assert.ok(h.indexOf('gtm.js') < h.indexOf('<title>'), 'GTM is high in <head>');
+    assert.match(h, /<body>\s*<!-- Google Tag Manager \(noscript\) -->\s*<noscript><iframe src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-TVLLGQ36"/);
+  }
 });

@@ -28,6 +28,8 @@ export function renderHtml(template: string, p: SeoPage, site: string, brand: st
 }
 
 let cached: { html: string; at: number } | null = null;
+/** Test helper: forget the cached HTML shell. */
+export const resetTemplateCache = () => { cached = null; };
 async function template(c: any): Promise<string> {
   if (cached && Date.now() - cached.at < 60_000) return cached.html;
   if (!c.env.ASSETS) return MINIMAL;

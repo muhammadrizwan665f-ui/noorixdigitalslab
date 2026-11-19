@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from './router';
 
 /** The one preferred domain. Canonical and Open Graph URLs always use it, whatever host served the page. */
@@ -25,13 +25,23 @@ export function useSeo(title: string | undefined, description?: string) {
 /** Canonical URL and robots directive for the current route. Mounted once in the app shell. */
 export function useRouteSeo() {
   const { path, search } = useRouter();
+  const first = useRef(true);
   useEffect(() => {
+    // Google Tag Manager: the first page view is counted by GTM itself; later in-app navigations are reported as a dataLayer event.
+    // Private areas (account, admin, order and reset URLs) only report their top-level section, never ids or tokens.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (first.current) first.current = false;
+    else timer = setTimeout(() => { // wait a moment so the new page has set its own <title>
+      const w = window as unknown as { dataLayer?: unknown[] };
+      (w.dataLayer = w.dataLayer || []).push({ event: 'spa_page_view', page_path: PRIVATE.test(path) ? '/' + path.split('/')[1] : path, page_title: document.title });
+    }, 400);
     const filtered = [...search.keys()].length > 0;
     const priv = PRIVATE.test(path);
     const canonical = SITE + (path === '/' ? '/' : path.replace(/\/+$/, ''));
     setMeta('link[rel="canonical"]', () => { const l = document.createElement('link'); l.setAttribute('rel', 'canonical'); return l; }, 'href', canonical);
     og('og:url', canonical);
     meta('robots', priv || noindexFlag ? 'noindex,nofollow' : filtered ? 'noindex,follow' : 'index,follow');
+    return () => { if (timer) clearTimeout(timer); };
   }, [path, search]);
 }
 
